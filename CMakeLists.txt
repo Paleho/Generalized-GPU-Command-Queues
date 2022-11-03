@@ -145,6 +145,20 @@ message( "->\nUniversal Helpers - Shared Library: " ${CMAKE_LIBRARY_OUTPUT_DIREC
 message( "Universal Helpers - Shared Library headers: " ${UNIHELP_INSTALL_INC} )
 message( "------------------------------------------------------------------------------------------------")
 
+# Testing - FIXME
+set(UNIHELP_TEST_DIR ${UNIHELP_DIR}/Testing)
+message("Unihelpers-Testing - UNIHELP_TEST_DIR: " ${UNIHELP_TEST_DIR})
+
+set (UNIHELP_TEST_INSTALL_BIN ${UNIHELP_TEST_DIR}/bin)
+message("Unihelpers-Testing - UNIHELP_TEST_INSTALL_BIN: " ${UNIHELP_TEST_INSTALL_BIN})
+file(MAKE_DIRECTORY ${UNIHELP_TEST_INSTALL_BIN})
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${UNIHELP_TEST_INSTALL_BIN})
+message("Unihelpers-Testing - CMAKE_RUNTIME_OUTPUT_DIRECTORY: " ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
+add_executable (queueCreateTest ${UNIHELP_TEST_DIR}/queueCreateTest.cu)
+target_link_libraries(queueCreateTest ${UNIHELP_INSTALL_LIB}/libunihelpers.so unihelpers)
+
 #set_target_properties(unihelpers PROPERTIES VERSION ${PROJECT_VERSION})
 #set_target_properties(unihelpers PROPERTIES SOVERSION 0)
 #set_target_properties(unihelpers PROPERTIES PUBLIC_HEADER ${PROJECT_BACKEND_LIB_DIR_INC}/unihelpers.hpp)
