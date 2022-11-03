@@ -81,7 +81,7 @@ CommandQueue::CommandQueue(int dev_id_in)
 		"CommandQueue::CommandQueue(%d): cublasCreate failed\n", dev_id);
 	massert(CUBLAS_STATUS_SUCCESS == cublasSetStream(*((cublasHandle_t*) cqueue_backend_data), stream),
 		"CommandQueue::CommandQueue(%d): cublasSetStream failed\n", dev_id);
-#endif
+
 	CoCoPeLiaSelectDevice(prev_dev_id);
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::CommandQueue()\n", dev_id);
