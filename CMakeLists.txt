@@ -63,7 +63,10 @@ set (CUDA_INCLUDE_DIRS ${CUDA_PREFIX}/include ${CUDA_PREFIX}/samples/common/inc)
 include_directories(${CUDA_INCLUDE_DIRS})
 message("Universal Helpers - CUDA_INCLUDE_DIRS: " ${CUDA_INCLUDE_DIRS})
 
-# TODO: Need OPENBLAS_PREFIX ?
+set(OPENBLAS_PREFIX "/home/users/spoutas/Libs/OpenBLAS-install") # silver1
+set (OPENBLAS_INCLUDE_DIRS ${OPENBLAS_PREFIX}/include)
+include_directories(${OPENBLAS_INCLUDE_DIRS})
+message("Universal Helpers - OPENBLAS_INCLUDE_DIRS: " ${OPENBLAS_INCLUDE_DIRS})
 
 # 	d) Link Libraries
 set (CUDA_LD ${CUDA_PREFIX}/lib64) # or /lib depending on system
@@ -71,11 +74,9 @@ set (CUDA_LINK "-L${CUDA_LD} -lcudart -lcublas -lcurand -lcuda") # silver1
 message("Universal Helpers - CUDA_LINK: " ${CUDA_LINK} )
 set (INTERNAL_LINK_LIB "${CUDA_LINK} -lrt -ldl")
 message("Universal Helpers - INTERNAL_LINK_LIB: " ${INTERNAL_LINK_LIB})
-
-set(OPENBLAS_PREFIX "/home/users/panastas/Lib_install/OpenBLAS-gcc93") # silver1
-set (OPENBLAS_INCLUDE_DIRS ${OPENBLAS_PREFIX}/include)
-include_directories(${OPENBLAS_INCLUDE_DIRS})
-message("Universal Helpers - OPENBLAS_INCLUDE_DIRS: " ${OPENBLAS_INCLUDE_DIRS})
+set (OPENBLAS_LD ${OPENBLAS_PREFIX}/lib)
+set (OPENBLAS_LINK  "-L${OPENBLAS_LD} -lopenblas" )
+message("Universal Helpers - OPENBLAS_LINK: " ${OPENBLAS_LINK} )
 
 set(PROJECT_VERSION "1.0")
 message("Universal Helpers - PROJECT_VERSION: " ${PROJECT_VERSION})
@@ -118,8 +119,6 @@ message("Universal Helpers - CMAKE_LIBRARY_OUTPUT_DIRECTORY: " ${CMAKE_LIBRARY_O
 
 set (UNIHELP_INSTALL_INC ${UNIHELP_INSTALL}/include)
 file(MAKE_DIRECTORY ${UNIHELP_INSTALL_INC})
-
-# end TODO
 
 ## Enable using lazy events; e.g. event backends are created on first record on the corresponding device.
 #FIXME: Current CoCoPeLia version only work with lazy events.
