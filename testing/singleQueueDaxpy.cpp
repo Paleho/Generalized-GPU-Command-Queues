@@ -1,6 +1,5 @@
 #include <cstdio>
 #include <typeinfo>
-#include <curand.h>
 #include <iostream>
 
 #include "unihelpers.hpp"
@@ -103,10 +102,10 @@ int main(int argc, char ** argv){
 	}
 	
 	// Free device memory
- 	CoCoFree(d_A, dev_id);
- 	CoCoFree(d_B, dev_id);
+	CoCoFree(d_A, dev_id);
+	CoCoFree(d_B, dev_id);
 
- 	// Free host memory
+	// Free host memory
 	CoCoFree(h_A, -1); // -1 in loc indicates Host pinned mem
 	CoCoFree(h_B, -1);
 	CoCoFree(h_Res, -1);
