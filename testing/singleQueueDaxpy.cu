@@ -16,7 +16,6 @@ void vectorInit(double * V, int n)
 
 int verifyRes(double* A, double* B, double* C, double alpha, int n)
 {
-	short ret = 1;
 	for(int i = 0; i < n; i++){
 		double correctResult = alpha * A[i] + B[i];
 		double dif = C[i] - correctResult;
@@ -24,12 +23,10 @@ int verifyRes(double* A, double* B, double* C, double alpha, int n)
 		bool expr2 = dif < (-1)*epsilon;
 		if(expr1 || expr2){
 			printf("verifyRes: incorrect at index %d -- alpha * A[i] + B[i] = %0.5lf BUT C[i] = %0.5lf -- Error = %0.5lf\n", i, correctResult, C[i], dif);
-			printf("expr1 = %d\n", expr1);
-			printf("expr2 = %d\n", expr2);
-			ret = 0;
+			return 0;
 		} 
 	}
-	return ret;
+	return 1;
 }
 
 void printVec(double* V, int N);
