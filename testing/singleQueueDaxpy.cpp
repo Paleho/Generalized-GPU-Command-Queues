@@ -1,3 +1,9 @@
+///
+/// \author Poutas Sokratis (sokratispoutas@gmail.com)
+///
+/// \brief Test the use of a single Command Queue. Use the queue to transfer data and perform the daxpy operation 
+///			alpha*A + B with the backend_run_operation function
+
 #include <cstdio>
 #include <typeinfo>
 #include <iostream>

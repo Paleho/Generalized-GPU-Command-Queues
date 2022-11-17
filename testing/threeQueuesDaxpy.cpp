@@ -1,3 +1,11 @@
+///
+/// \author Poutas Sokratis (sokratispoutas@gmail.com)
+///
+/// \brief Test the use of three Command Queues along with Events.  
+///			Q1: c1*A + B = res1
+///			Q2: c2*C + D = res2
+///			Q3: c3*res1 + res2 = Result
+
 #include <cstdio>
 #include <typeinfo>
 #include <iostream>
