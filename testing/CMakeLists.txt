@@ -11,6 +11,10 @@ target_link_libraries(threeQueuesDaxpy ${UNIHELP_INSTALL_LIB}/libunihelpers.so u
 add_executable (singleQueueDgemm singleQueueDgemm.cpp)
 target_link_libraries(singleQueueDgemm ${UNIHELP_INSTALL_LIB}/libunihelpers.so unihelpers)
 
+add_executable (threeQueuesDgemm threeQueuesDgemm.cpp)
+target_link_libraries(threeQueuesDgemm ${UNIHELP_INSTALL_LIB}/libunihelpers.so unihelpers)
+
 add_test(single_queue_daxpy singleQueueDaxpy)
 add_test(three_queues_daxpy threeQueuesDaxpy)
 add_test(single_queue_dgemm singleQueueDgemm)
+add_test(three_queues_dgemm threeQueuesDgemm)
