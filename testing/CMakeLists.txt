@@ -23,7 +23,18 @@ target_link_libraries(interDeviceDependencies ${UNIHELP_INSTALL_LIB}/libunihelpe
 add_executable (matrixAdd matrixAdd.cpp)
 target_link_libraries(matrixAdd ${UNIHELP_INSTALL_LIB}/libunihelpers.so unihelpers)
 
+add_executable (simpleInterDevice simpleInterDevice.cpp)
+target_link_libraries(simpleInterDevice ${UNIHELP_INSTALL_LIB}/libunihelpers.so unihelpers)
+
 add_test(single_queue_daxpy singleQueueDaxpy)
 add_test(three_queues_daxpy threeQueuesDaxpy)
 add_test(single_queue_dgemm singleQueueDgemm)
 add_test(three_queues_dgemm threeQueuesDgemm)
+add_test(interdevice_dependencies interDeviceDependencies)
+add_test(NAME simple_interdevice_2048 COMMAND simpleInterDevice 2048 synched)
+add_test(NAME simple_interdevice_2048_desynched COMMAND simpleInterDevice 2048 desynched)
+set_tests_properties(
+    simple_interdevice_2048_desynched
+PROPERTIES
+    WILL_FAIL TRUE
+)
