@@ -1342,13 +1342,13 @@ int main(int argc, char ** argv){
 	CoCoFree(h_R22, -1);
 
 	// free matrices for host
-	CoCoFree(host_A22B21, -1);
-	CoCoFree(host_A22B22, -1);
+	CoCoFree(host_A22B21, -2);
+	CoCoFree(host_A22B22, -2);
 
-	CoCoFree(host_M12A22B21, -1);
-	CoCoFree(host_M22A22B21, -1);
-	CoCoFree(host_M12A22B22, -1);
-	CoCoFree(host_M22A22B22, -1);
+	CoCoFree(host_M12A22B21, -2);
+	CoCoFree(host_M22A22B21, -2);
+	CoCoFree(host_M12A22B22, -2);
+	CoCoFree(host_M22A22B22, -2);
 
 	// delete and free all queues
 	for(int i = 0; i < 6; i++) delete(Q1[i]);

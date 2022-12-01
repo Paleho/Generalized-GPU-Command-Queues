@@ -31,10 +31,10 @@ add_test(three_queues_daxpy threeQueuesDaxpy)
 add_test(single_queue_dgemm singleQueueDgemm)
 add_test(three_queues_dgemm threeQueuesDgemm)
 add_test(interdevice_dependencies interDeviceDependencies)
-add_test(NAME simple_interdevice_2048 COMMAND simpleInterDevice 2048 synched)
-add_test(NAME simple_interdevice_2048_desynched COMMAND simpleInterDevice 2048 desynched)
+add_test(NAME simple_interdevice_1024 COMMAND simpleInterDevice 1024 synched)
+add_test(NAME simple_interdevice_1024_desynched COMMAND simpleInterDevice 1024 desynched)
 set_tests_properties(
-    simple_interdevice_2048_desynched
+    simple_interdevice_1024_desynched
 PROPERTIES
     WILL_FAIL TRUE
 )
