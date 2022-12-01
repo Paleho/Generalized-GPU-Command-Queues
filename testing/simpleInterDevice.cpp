@@ -1,7 +1,9 @@
 ///
 /// \author Poutas Sokratis (sokratispoutas@gmail.com)
 ///
-/// \brief 
+/// \brief Simple test for interdevice dependecies. 
+///			Device 0 (GPU) computes the NxN matrix ABCDE
+///			Device 1 (GPU) waits for result and computes MABCDE.
 
 #include <cstdlib>
 #include <cstdio>
