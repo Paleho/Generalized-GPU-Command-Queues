@@ -61,10 +61,10 @@ void printMat(double * M, int rows, int cols);
 
 int main(int argc, char ** argv){
 	int returnFlag = 0;
-	int M = 128;
-	int K = 32;
-	int N = 64;
-	int L = 16;
+	int M = 1024;
+	int K = 1024;
+	int N = 1024;
+	int L = 1024;
  	size_t size_m_by_k = M * K * sizeof(double);
 	size_t size_k_by_n = K * N * sizeof(double);
 	size_t size_m_by_n = M * N * sizeof(double);
