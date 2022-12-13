@@ -14,9 +14,15 @@ typedef struct pthread_task {
     void* data; 
 }* pthread_task_p; 
 
-typedef struct backend_data { 
+typedef struct queue_data { 
     void * taskQueue;
     pthread_t threadId;
     int queueLock; 
     bool terminate;
-}* backend_data_p; 
+}* queue_data_p; 
+
+typedef struct pthread_event {
+    void * taskQueue;
+    pthread_t threadId;
+    event_status estate;
+}* pthread_event_p; 

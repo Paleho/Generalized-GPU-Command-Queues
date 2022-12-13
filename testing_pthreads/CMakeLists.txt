@@ -7,3 +7,6 @@ target_link_libraries(singleQueueTasks ${UNIHELP_INSTALL_LIB}/libunihelpers.so u
 
 add_executable (parallelQueues parallelQueues.cpp)
 target_link_libraries(parallelQueues ${UNIHELP_INSTALL_LIB}/libunihelpers.so unihelpers)
+
+add_executable (twoQueuesEvents twoQueuesEvents.cpp)
+target_link_libraries(twoQueuesEvents ${UNIHELP_INSTALL_LIB}/libunihelpers.so unihelpers)
