@@ -70,16 +70,14 @@ void* taskExecLoop(void * args)
 			release_lock_q(&thread_data->queueLock);
 			break;
 		} 
-		if(task_queue_p->size() > 0){
+		else if(task_queue_p->size() > 0){
 			// get next task
 			pthread_task_p curr_task_p = task_queue_p->front();
-			task_queue_p->pop();
+			release_lock_q(&thread_data->queueLock);
 
 			// cout << "taskExecLoop: Thread " << thread_data->threadId << " -- Got task = " << curr_task_p << endl;
 
 			// cout << "taskExecLoop: about to release lock with value = " << thread_data->queueLock << endl;
-
-			release_lock_q(&thread_data->queueLock);
 
 			if(curr_task_p){
 				// execute task
@@ -87,6 +85,12 @@ void* taskExecLoop(void * args)
 				curr_func = (void* (*)(void*))curr_task_p->func;
 				curr_func(curr_task_p->data);
 
+				get_lock_q(&thread_data->queueLock);
+				if(task_queue_p->size() > 0)
+					task_queue_p->pop();
+				else
+					cout << "taskExecLoop: Error: Thread " << thread_data->threadId << " -- tried to pop from empty queue" << endl;
+				release_lock_q(&thread_data->queueLock);
 				// cout << "taskExecLoop: Thread " << thread_data->threadId << " -- Executed task = " << curr_task_p << endl;
 
 				// delete task
