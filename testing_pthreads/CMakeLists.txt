@@ -13,3 +13,6 @@ target_link_libraries(twoQueuesEvents ${UNIHELP_INSTALL_LIB}/libunihelpers.so un
 
 add_executable (matrixMultInMultipleQueues matrixMultInMultipleQueues.cpp)
 target_link_libraries(matrixMultInMultipleQueues ${UNIHELP_INSTALL_LIB}/libunihelpers.so unihelpers)
+
+add_executable (wrappedMatrixMultQueues wrappedMatrixMultQueues.cpp)
+target_link_libraries(wrappedMatrixMultQueues ${UNIHELP_INSTALL_LIB}/libunihelpers.so unihelpers)
