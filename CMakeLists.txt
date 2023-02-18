@@ -147,6 +147,7 @@ elseif(${BACKEND} STREQUAL "Pthreads")
 	${UNIHELP_DIR_SRC}/general_utils.cpp
 	${BACKEND_UNIHELP_DIR_SRC}/class_wrappers.cpp
 	${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cpp
+	${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cpp
 	${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cpp
 	${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cpp
 	)

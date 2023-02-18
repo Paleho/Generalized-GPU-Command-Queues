@@ -16,3 +16,6 @@ target_link_libraries(matrixMultInMultipleQueues ${UNIHELP_INSTALL_LIB}/libunihe
 
 add_executable (wrappedMatrixMultQueues wrappedMatrixMultQueues.cpp)
 target_link_libraries(wrappedMatrixMultQueues ${UNIHELP_INSTALL_LIB}/libunihelpers.so unihelpers)
+
+add_executable (threeQueuesDgemm threeQueuesDgemm.cpp)
+target_link_libraries(threeQueuesDgemm ${UNIHELP_INSTALL_LIB}/libunihelpers.so unihelpers)

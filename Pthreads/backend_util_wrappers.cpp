@@ -3,8 +3,37 @@
 ///
 /// \brief 
 ///
+#include <cstdio>
+#include <typeinfo>
+#include <float.h>
 
 #include "pthreads_backend_wrappers.hpp"
+
+void CoCoSyncCheckErr(){
+	printf("CoCoSyncCheckErr: not implemented for pthreads\n");
+}
+
+void CoCoASyncCheckErr(){
+	printf("CoCoASyncCheckErr: not implemented for pthreads\n");
+}
+
+void cudaCheckErrors(){
+	//CoCoASyncCheckErr();
+	CoCoSyncCheckErr();
+}
+
+int CoCoPeLiaGetDevice(){
+  int dev_id = -1;
+  return dev_id;
+}
+
+void CoCoPeLiaSelectDevice(short dev_id){
+  // Does nothing for pthreads
+}
+
+void CoCoPeLiaDevGetMemInfo(long long* free_dev_mem, long long* max_dev_mem){
+  // Not implemented for pthreads
+}
 
 void TransposeTranslate(char TransChar, CBLAS_TRANSPOSE* cblasFlag, cublasOperation_t* cuBLASFlag, long int* ldim, long int dim1, long int dim2){
 	if (TransChar == 'N'){
