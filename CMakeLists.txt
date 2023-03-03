@@ -145,13 +145,13 @@ if (${BACKEND} STREQUAL "CuCuBLAS")
 elseif(${BACKEND} STREQUAL "Pthreads")
 	add_library(unihelpers SHARED
 	${UNIHELP_DIR_SRC}/general_utils.cpp
-	${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cpp
-	${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cpp
-	${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cpp
-	${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cpp
-	${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cpp
+	${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
+	${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
+	${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
+	${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cu
+	${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cu
 	)
-	target_link_libraries(unihelpers ${PTHREADS_INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
+	target_link_libraries(unihelpers ${PTHREADS_INTERNAL_LINK_LIB} ${CUDA_INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
 
 	configure_file(${UNIHELP_DIR_INC}/unihelpers.hpp ${UNIHELP_INSTALL_INC}/unihelpers.hpp COPYONLY)
 	## FIXME: This is a temporary cheat for deployment, must be removed at some point (?). It has to do with TransposeTranslate.

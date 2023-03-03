@@ -6,15 +6,20 @@
 #include <cstdio>
 #include <typeinfo>
 #include <float.h>
+#include <curand.h>
 
 #include "pthreads_backend_wrappers.hpp"
 
 void CoCoSyncCheckErr(){
-	printf("CoCoSyncCheckErr: not implemented for pthreads\n");
+  cudaError_t errSync = cudaDeviceSynchronize();
+  if (errSync != cudaSuccess)
+    printf("Sync kernel error: %s\n", cudaGetErrorString(errSync));
 }
 
 void CoCoASyncCheckErr(){
-	printf("CoCoASyncCheckErr: not implemented for pthreads\n");
+  cudaError_t errAsync = cudaGetLastError();
+  if (errAsync != cudaSuccess)
+    printf("Async kernel error: %s\n", cudaGetErrorString(errAsync));
 }
 
 void cudaCheckErrors(){
@@ -24,15 +29,38 @@ void cudaCheckErrors(){
 
 int CoCoPeLiaGetDevice(){
   int dev_id = -1;
+  cudaError_t err = cudaGetDevice(&dev_id);
+  massert(cudaSuccess == err,
+    "CoCoPeLiaGetDevice: cudaGetDevice failed - %s\n", cudaGetErrorString(err));
   return dev_id;
 }
 
 void CoCoPeLiaSelectDevice(short dev_id){
-  // Does nothing for pthreads
+  int dev_count;
+  cudaError_t err = cudaGetDeviceCount(&dev_count);
+  if(dev_id >= 0 && dev_id < dev_count){
+  cudaError_t err = cudaSetDevice(dev_id);
+  massert(cudaSuccess == err,
+    "CoCoPeLiaSelectDevice(%d): cudaSetDevice(%d) failed - %s\n", dev_id, dev_id, cudaGetErrorString(err));
+  }
+  else if(dev_id == -1){  /// "Host" device loc id used by CoCoPeLia
+    cudaSetDevice(0);
+  }
+  else error("CoCoPeLiaSelectDevice(%d): invalid dev_id\n", dev_id);
 }
 
 void CoCoPeLiaDevGetMemInfo(long long* free_dev_mem, long long* max_dev_mem){
-  // Not implemented for pthreads
+  size_t free_dev_mem_tmp, max_dev_mem_tmp;
+    int tmp_dev_id;
+    cudaError_t err = cudaGetDevice(&tmp_dev_id);
+    // TODO: For the CPU this function returns device 0 memory availability. Its a feature not a bug.
+    massert(cudaSuccess == err,
+      "CoCoPeLiaDevGetMemInfo: cudaGetDevice failed - %s\n", cudaGetErrorString(err));
+    err = cudaMemGetInfo(&free_dev_mem_tmp, &max_dev_mem_tmp);
+  	massert(cudaSuccess == err,
+      "CoCoPeLiaDevGetMemInfo: cudaMemGetInfo failed - %s\n", cudaGetErrorString(err));
+    *free_dev_mem = (long long) free_dev_mem_tmp;
+    *max_dev_mem = (long long) max_dev_mem_tmp;
 }
 
 void TransposeTranslate(char TransChar, CBLAS_TRANSPOSE* cblasFlag, cublasOperation_t* cuBLASFlag, long int* ldim, long int dim1, long int dim2){

@@ -28,14 +28,6 @@ inline void release_lock(){
 	;
 }
 
-// Queue lock
-inline void get_lock_q(int * lock){
-	while(__sync_lock_test_and_set (lock, 1));
-}
-inline void release_lock_q(int * lock){
-	__sync_lock_release(lock);
-}
-
 /*****************************************************/
 /// Event Status-related functions
 
@@ -115,23 +107,35 @@ void* taskExecLoop(void * args)
 /// Command queue class functions
 CommandQueue::CommandQueue(int dev_id_in)
 {
-	// TODO: bring back CoCoPeLiaGetDevice CoCoPeLiaSelectDevice
-	// int prev_dev_id = CoCoPeLiaGetDevice();
+	int prev_dev_id = CoCoPeLiaGetDevice();
 	dev_id = dev_id_in;
-	// CoCoPeLiaSelectDevice(dev_id);
-// #ifdef UDDEBUG
-// 	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::CommandQueue()\n", dev_id_in);
-// #endif
-// 	if(prev_dev_id != dev_id){;
-// #ifdef UDEBUG
-// 		lprintf(lvl, "[dev_id=%3d] ------- CommandQueue::CommandQueue(): Called for other dev_id = %d\n",
-// 			dev_id, prev_dev_id);
-// #endif
-// 	}
+	CoCoPeLiaSelectDevice(dev_id);
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::CommandQueue()\n", dev_id_in);
+#endif
+	if(prev_dev_id != dev_id){;
+#ifdef UDEBUG
+		lprintf(lvl, "[dev_id=%3d] ------- CommandQueue::CommandQueue(): Called for other dev_id = %d\n",
+			dev_id, prev_dev_id);
+#endif
+	}
 	
 #ifdef UDEBUG
 		lprintf(lvl, "[dev_id=%3d] ------- CommandQueue::CommandQueue(%d): Initializing simple queue\n", dev_id);
 #endif
+	// Create stream pool
+	cudaStream_t* stream_pool = (cudaStream_t*)malloc(STREAM_POOL_SZ * sizeof(cudaStream_t));
+	for(int i = 0; i < STREAM_POOL_SZ; i++){
+		cudaError_t err = cudaStreamCreate(&stream_pool[i]);
+		massert(cudaSuccess == err, "CommandQueue::CommandQueue(%d) - %s\n", dev_id, cudaGetErrorString(err));
+	}
+
+	// Create cublas handle
+	cublasHandle_t* handle_p = (cublasHandle_t*)malloc(sizeof(cublasHandle_t));
+	massert(CUBLAS_STATUS_SUCCESS == cublasCreate(handle_p),
+		"CommandQueue::CommandQueue(%d): cublasCreate failed\n", dev_id);
+
+
 	queue<pthread_task_p>* task_queue = new queue<pthread_task_p>;
 	cqueue_backend_ptr = (void *) task_queue;
 	queue_data_p data = new queue_data;
@@ -139,6 +143,9 @@ CommandQueue::CommandQueue(int dev_id_in)
 	data->taskQueue = (void *) task_queue;
 	data->queueLock = 0; // initialize queue lock
 	data->terminate = false;
+	data->stream_pool = stream_pool;
+	data->stream_ctr = 0;
+	data->handle_p = handle_p;
 	cqueue_backend_data = (void*) data;
 
 	// Spawn thread that loops over queue and executes tasks
@@ -146,7 +153,7 @@ CommandQueue::CommandQueue(int dev_id_in)
 
 	// cout << "CommandQueue::CommandQueue: Queue constructor complete. Thread id = " << data->threadId << endl;
 
-	// CoCoPeLiaSelectDevice(prev_dev_id);
+	CoCoPeLiaSelectDevice(prev_dev_id);
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::CommandQueue()\n", dev_id);
 #endif
@@ -159,7 +166,7 @@ CommandQueue::~CommandQueue()
 #endif
 	// cout << "CommandQueue::~CommandQueue: Enter Queue destructor" << endl;
 	sync_barrier();
-	// CoCoPeLiaSelectDevice(dev_id);
+	CoCoPeLiaSelectDevice(dev_id);
 
 	queue_data_p backend_d = (queue_data_p) cqueue_backend_data;
 	// cout << "CommandQueue::~CommandQueue  waiting for queueLock" << endl;
@@ -170,6 +177,14 @@ CommandQueue::~CommandQueue()
 	if(pthread_join(backend_d->threadId, NULL)) cout << "Error: CommandQueue::~CommandQueue: pthread_join failed" << endl;
 
 	queue<pthread_task_p> * task_queue_p = (queue<pthread_task_p> *)cqueue_backend_ptr;
+
+	for(int i = 0; i < STREAM_POOL_SZ; i++){
+		cudaError_t err = cudaStreamDestroy(backend_d->stream_pool[i]);
+		massert(cudaSuccess == err, "CommandQueue::CommandQueue - cudaStreamDestroy: %s\n", cudaGetErrorString(err));
+	}
+	massert(CUBLAS_STATUS_SUCCESS == cublasDestroy(*(backend_d->handle_p)),
+		"CommandQueue::CommandQueue - cublasDestroy(handle) failed\n");
+
 	delete(task_queue_p);
 	delete(backend_d);
 
