@@ -201,6 +201,14 @@ int main(int argc, char ** argv){
 		returnFlag = 0;
 	}
 
+	delete Q1_p;
+	delete Q2_p;
+	delete mult1_complete;
+	delete input_1;
+	delete input_2;
+	delete input_3;
+	delete input_4;
+
 	// Free device 0 mem
 	delete[] h_A;
 	delete[] h_B;
@@ -216,14 +224,6 @@ int main(int argc, char ** argv){
 	delete[] verify_MAB;
 	delete[] verify_MABC;
 	delete[] verify_Res;
-
-	delete Q1_p;
-	delete Q2_p;
-	delete mult1_complete;
-	delete input_1;
-	delete input_2;
-	delete input_3;
-	delete input_4;
 
 	return returnFlag;
 }
