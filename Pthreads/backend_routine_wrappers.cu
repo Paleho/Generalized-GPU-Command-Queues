@@ -147,7 +147,8 @@ void cublas_wrap_daxpy(void* wider_backend_data){
     ptr_ker_translate->incx, (double*) *ptr_ker_translate->y, ptr_ker_translate->incy),
     "cublas_wrap_daxpy failed\n");
 
-  massert(cudaSuccess == cudaStreamSynchronize(queue_backend_data->stream_pool[current_stream_ctr]), "cublas_wrap_daxpy: stream sync failed\n");
+  cudaError_t err = cudaStreamSynchronize(queue_backend_data->stream_pool[current_stream_ctr]);
+  massert(cudaSuccess == err, "cublas_wrap_daxpy: stream sync failed, current_stream_ctr = %d, queue_backend_data = %x, queue_backend_data->stream_pool[current_stream_ctr] = %x, cudaError = %s\n", current_stream_ctr, queue_backend_data, queue_backend_data->stream_pool[current_stream_ctr], cudaGetErrorString(err));
 }
 
 void cublas_wrap_dgemm(void* wider_backend_data){
@@ -194,5 +195,6 @@ void cublas_wrap_dgemm(void* wider_backend_data){
     &ptr_ker_translate->beta, (VALUE_TYPE*) *ptr_ker_translate->C, ptr_ker_translate->ldC),
     "cublas_wrap_dgemm: cublasDgemm failed\n");
 
-  massert(cudaSuccess == cudaStreamSynchronize(queue_backend_data->stream_pool[current_stream_ctr]), "cublas_wrap_daxpy: stream sync failed\n");
+  cudaError_t err = cudaStreamSynchronize(queue_backend_data->stream_pool[current_stream_ctr]);
+  massert(cudaSuccess == err, "cublas_wrap_dgemm: stream sync failed, current_stream_ctr = %d, queue_backend_data = %x, queue_backend_data->stream_pool[current_stream_ctr] = %x, cudaError = %s\n", current_stream_ctr, queue_backend_data, queue_backend_data->stream_pool[current_stream_ctr], cudaGetErrorString(err));
 }

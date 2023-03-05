@@ -170,8 +170,11 @@ CommandQueue::~CommandQueue()
 	// cout << "CommandQueue::~CommandQueue: Enter Queue destructor" << endl;
 	sync_barrier();
 	CoCoPeLiaSelectDevice(dev_id);
-
 	queue_data_p backend_d = (queue_data_p) cqueue_backend_data;
+	for(int i = 0; i < STREAM_POOL_SZ; i++){
+		massert(cudaSuccess == cudaStreamQuery(backend_d->stream_pool[i]), "CommandQueue::~CommandQueue: Found stream with pending work\n");
+	}
+
 	// cout << "CommandQueue::~CommandQueue  waiting for queueLock" << endl;
 	get_lock_q(&backend_d->queueLock);
 	backend_d->terminate = true;
@@ -182,6 +185,7 @@ CommandQueue::~CommandQueue()
 	queue<pthread_task_p> * task_queue_p = (queue<pthread_task_p> *)cqueue_backend_ptr;
 
 	for(int i = 0; i < STREAM_POOL_SZ; i++){
+		massert(cudaSuccess == cudaStreamQuery(backend_d->stream_pool[i]), "About to destroy stream with pending work\n");
 		cudaError_t err = cudaStreamDestroy(backend_d->stream_pool[i]);
 		massert(cudaSuccess == err, "CommandQueue::CommandQueue - cudaStreamDestroy: %s\n", cudaGetErrorString(err));
 	}

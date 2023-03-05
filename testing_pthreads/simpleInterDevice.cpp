@@ -342,6 +342,16 @@ int main(int argc, char ** argv){
 		returnFlag = 0;
 	}
 
+	for(int i = 0; i < 4; i++) delete(Q0[i]);
+	CoCoFree(Q0, -2);
+
+	delete(d0_AB_ready);
+	delete(d0_ABC_ready);
+	delete(d0_ABCD_ready);
+	delete(d0_ABCDE_ready);
+
+	delete(Q1);
+
 	// Free device 0 mem
 	CoCoFree(d0_A, 0);
 	CoCoFree(d0_B, 0);
@@ -357,20 +367,11 @@ int main(int argc, char ** argv){
 	CoCoFree(d0_stall_X, 0);
 	CoCoFree(d0_stall_Y, 0);
 
-	for(int i = 0; i < 4; i++) delete(Q0[i]);
-	CoCoFree(Q0, -2);
-
 	CoCoFree(gemmData_p_0, -1);
 	CoCoFree(gemmData_p_1, -1);
 	CoCoFree(gemmData_p_2, -1);
 	CoCoFree(gemmData_p_3, -1);
 	CoCoFree(gemmData_p_0_stall, -1);
-
-
-	delete(d0_AB_ready);
-	delete(d0_ABC_ready);
-	delete(d0_ABCD_ready);
-	delete(d0_ABCDE_ready);
 
 	// Free device 1 mem
 	CoCoFree(d1_M, 1);
@@ -378,7 +379,6 @@ int main(int argc, char ** argv){
 	CoCoFree(d1_MABCDE, 1);
 
 	CoCoFree(gemmData_p_4, -1);
-	delete(Q1);
 
 	// Free host mem
 	CoCoFree(h_A, -1);

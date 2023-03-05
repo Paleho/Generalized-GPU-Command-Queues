@@ -48,6 +48,8 @@ target_link_libraries(memcpy2DAsync ${UNIHELP_INSTALL_LIB}/libunihelpers.so unih
 add_executable (orderSingleQueue orderSingleQueue.cpp)
 target_link_libraries(orderSingleQueue ${UNIHELP_INSTALL_LIB}/libunihelpers.so unihelpers)
 
+
+
 add_test(NAME matrix_mult_in_multiple_queues_256 COMMAND matrixMultInMultipleQueues 256 synched)
 add_test(NAME matrix_mult_in_multiple_queues_256_desynched COMMAND matrixMultInMultipleQueues 256 desynched)
 set_tests_properties(
