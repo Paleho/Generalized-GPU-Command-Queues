@@ -63,6 +63,9 @@ void* taskExecLoop(void * args)
 			break;
 		} 
 		else if(task_queue_p->size() > 0){
+			for(int i = 0; i < STREAM_POOL_SZ; i++)
+				massert(cudaSuccess == cudaStreamQuery(thread_data->stream_pool[i]), "Error: Found stream with pending work\n");
+
 			// get next task
 			pthread_task_p curr_task_p = task_queue_p->front();
 			release_lock_q(&thread_data->queueLock);
@@ -256,9 +259,10 @@ void * blockQueue(void * data){
 
 	while(Wevent->query_status() < COMPLETE){
 		;
-		// cout << "blockQueue: waiting for event = "	<< (pthread_event_p) Wevent->event_backend_ptr << endl;
+		// cout << "blockQueue: waiting for event = "	<< (pthread_event_p) Wevent->event_backend_ptr << " status = " << Wevent->query_status() << endl;
 	}
 
+	// cout << "blockQueue: event arrived = "	<< (pthread_event_p) Wevent->event_backend_ptr << " status = " << Wevent->query_status() << endl;
 	return 0;
 }
 
@@ -371,8 +375,8 @@ void Event::record_to_queue(CQueue_p Rr){
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::record_to_queue(Queue(dev_id=%d))\n", dev_id, id, Rr->dev_id);
 #endif
-	int prev_dev_id;
-	// cudaGetDevice(&prev_dev_id);
+// 	int prev_dev_id;
+// 	cudaGetDevice(&prev_dev_id);
 // 	if (Rr->dev_id != prev_dev_id){
 // 		CoCoPeLiaSelectDevice(Rr->dev_id);
 // #ifdef UDEBUG
@@ -386,23 +390,23 @@ void Event::record_to_queue(CQueue_p Rr){
 		warning("Event(%d,dev_id = %d)::record_to_queue(%d): Recording %s event\n",
 			id, dev_id, Rr->dev_id, print_event_status(status));
 #endif
-#ifdef ENABLE_LAZY_EVENTS
-		if(Rr->dev_id != dev_id)
-			error("(Lazy)Event(%d,dev_id = %d)::record_to_queue(%d): Recording %s event in iligal dev\n",
-				id, dev_id, Rr->dev_id, print_event_status(status));
-#endif
+// #ifdef ENABLE_LAZY_EVENTS
+// 		if(Rr->dev_id != dev_id)
+// 			error("(Lazy)Event(%d,dev_id = %d)::record_to_queue(%d): Recording %s event in iligal dev\n",
+// 				id, dev_id, Rr->dev_id, print_event_status(status));
+// #endif
 	}
-#ifdef ENABLE_LAZY_EVENTS
-	else if (status == UNRECORDED){
-		if(dev_id > -1) /// TODO: This used to be an error, but with soft reset it was problematic...is it ok?
-			;//warning("(Lazy)Event(%d,dev_id = %d)::record_to_queue(%d) - UNRECORDED event suspicious dev_id\n",
-			//	id, dev_id, Rr->dev_id);
-		// dev_id = Rr->dev_id;
-		// cudaError_t err = cudaEventCreate(( cudaEvent_t*) event_backend_ptr);
-		// massert(cudaSuccess == err, "(Lazy)Event(%d,dev_id = %d)::record_to_queue(%d): - %s\n",
-		// 	id, dev_id, Rr->dev_id, cudaGetErrorString(err));
-	}
-#endif
+// #ifdef ENABLE_LAZY_EVENTS
+// 	else if (status == UNRECORDED){
+// 		if(dev_id > -1) /// TODO: This used to be an error, but with soft reset it was problematic...is it ok?
+// 			;//warning("(Lazy)Event(%d,dev_id = %d)::record_to_queue(%d) - UNRECORDED event suspicious dev_id\n",
+// 			//	id, dev_id, Rr->dev_id);
+// 		dev_id = Rr->dev_id;
+// 		cudaError_t err = cudaEventCreate(( cudaEvent_t*) event_backend_ptr);
+// 		massert(cudaSuccess == err, "(Lazy)Event(%d,dev_id = %d)::record_to_queue(%d): - %s\n",
+// 			id, dev_id, Rr->dev_id, cudaGetErrorString(err));
+// 	}
+// #endif
 	pthread_event_p event_p = (pthread_event_p) event_backend_ptr;
 	if(event_p->estate != UNRECORDED) 
 		warning("Event(%d,dev_id = %d)::record_to_queue(%d): Recording %s event\n",
@@ -410,14 +414,14 @@ void Event::record_to_queue(CQueue_p Rr){
 
 	event_p->estate = RECORDED;
 	status = RECORDED;
+	// if (Rr->dev_id != prev_dev_id){
+	// 	cudaSetDevice(prev_dev_id);
+	// }
 	release_lock();
 
 	// cout << "Event::record_to_queue: event " << event_p << "recorded" << endl;
 	Rr->add_host_func((void*) &eventFunc, (void*) event_p);
 
-	// if (Rr->dev_id != prev_dev_id){
-	// 	cudaSetDevice(prev_dev_id);
-	// }
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| Event(%d)::record_to_queue(Queue(dev_id=%d))\n", dev_id, id, Rr->dev_id);
 #endif
@@ -431,12 +435,12 @@ event_status Event::query_status(){
 	get_lock();
 	enum event_status local_status = status;
 	if (local_status != CHECKED){
-#ifdef ENABLE_LAZY_EVENTS
-		if (local_status == UNRECORDED){
-			release_lock();
-			return UNRECORDED;
-		}
-#endif
+// #ifdef ENABLE_LAZY_EVENTS
+// 		if (local_status == UNRECORDED){
+// 			release_lock();
+// 			return UNRECORDED;
+// 		}
+// #endif
 		pthread_event_p event_p = (pthread_event_p) event_backend_ptr;
 		
 		if(status == RECORDED && event_p->estate == COMPLETE) status = COMPLETE;

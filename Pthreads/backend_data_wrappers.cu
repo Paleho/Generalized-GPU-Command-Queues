@@ -178,7 +178,7 @@ typedef struct CoCoMemcpy_data
 	short loc_src;
 }* CoCoMemcpy_data_p;
 
-void* _CoCoMemcpyAsync(void* input)
+void _CoCoMemcpyAsync(void* input)
 {
 	CoCoMemcpy_data_p input_unwrapped = (CoCoMemcpy_data_p) input;
 
@@ -204,13 +204,13 @@ void* _CoCoMemcpyAsync(void* input)
 	if (input_unwrapped->loc_src == input_unwrapped->loc_dest) warning("_CoCoMemcpyAsync(dest=%p, src=%p, bytes=%lld, loc_dest=%d, loc_src=%d): Source location matches destination\n",
 	input_unwrapped->dest, input_unwrapped->src, input_unwrapped->bytes, input_unwrapped->loc_dest, input_unwrapped->loc_src);
 	massert(cudaSuccess == cudaMemcpyAsync(input_unwrapped->dest, input_unwrapped->src, input_unwrapped->bytes, kind, queue_backend_data->stream_pool[current_stream_ctr]),
-	"CoCoMemcpy2D: cudaMemcpyAsync failed\n");
+	"_CoCoMemcpyAsync: cudaMemcpyAsync failed\n");
 
-	cudaStreamSynchronize(queue_backend_data->stream_pool[current_stream_ctr]); 
+	massert(cudaSuccess == cudaStreamSynchronize(queue_backend_data->stream_pool[current_stream_ctr]), "_CoCoMemcpyAsync: stream sync failed\n");
 
 	delete input_unwrapped;
 
-	return 0;
+	return;
 }
 
 void CoCoMemcpyAsync(void* dest, void* src, long long bytes, short loc_dest, short loc_src, CQueue_p transfer_queue)
@@ -224,33 +224,36 @@ void CoCoMemcpyAsync(void* dest, void* src, long long bytes, short loc_dest, sho
 	data->loc_src = loc_src;
 
 	transfer_queue->add_host_func((void*) &_CoCoMemcpyAsync, (void*) data);
+	return;
 }
 
-// void CoCoMemcpy2D(void* dest, long int ldest, void* src, long int ldsrc, long int rows, long int cols, short elemSize, short loc_dest, short loc_src){
-// 	short lvl = 6;
-// #ifdef DDEBUG
-// 	lprintf(lvl, "CoCoMemcpy2D(dest=%p, ldest =%zu, src=%p, ldsrc = %zu, rows = %zu, cols = %zu, elemsize = %d, loc_dest = %d, loc_src = %d)\n",
-// 		dest, ldest, src, ldsrc, rows, cols, elemSize, loc_dest, loc_src);
-// #endif
-// 	int count = 42;
-// 	massert(CUBLAS_STATUS_SUCCESS == cudaGetDeviceCount(&count), "CoCoMemcpy2D: cudaGetDeviceCount failed\n");
-// 	massert(-3 < loc_dest && loc_dest < count, "CoCoMemcpy2D: Invalid destination device: %d\n", loc_dest);
-// 	massert(-3 < loc_src && loc_src < count, "CoCoMemcpy2D: Invalid source device: %d\n", loc_src);
+void CoCoMemcpy2D(void* dest, long int ldest, void* src, long int ldsrc, long int rows, long int cols, short elemSize, short loc_dest, short loc_src){
+	short lvl = 6;
+#ifdef DDEBUG
+	lprintf(lvl, "CoCoMemcpy2D(dest=%p, ldest =%zu, src=%p, ldsrc = %zu, rows = %zu, cols = %zu, elemsize = %d, loc_dest = %d, loc_src = %d)\n",
+		dest, ldest, src, ldsrc, rows, cols, elemSize, loc_dest, loc_src);
+#endif
+	int count = 42;
+	massert(CUBLAS_STATUS_SUCCESS == cudaGetDeviceCount(&count), "CoCoMemcpy2D: cudaGetDeviceCount failed\n");
+	massert(-3 < loc_dest && loc_dest < count, "CoCoMemcpy2D: Invalid destination device: %d\n", loc_dest);
+	massert(-3 < loc_src && loc_src < count, "CoCoMemcpy2D: Invalid source device: %d\n", loc_src);
 
-// 	enum cudaMemcpyKind kind;
-// 	if (loc_src < 0 && loc_dest < 0) kind = cudaMemcpyHostToHost;
-// 	else if (loc_dest < 0) kind = cudaMemcpyDeviceToHost;
-// 	else if (loc_src < 0) kind = cudaMemcpyHostToDevice;
-// 	else kind = cudaMemcpyDeviceToDevice;
+	enum cudaMemcpyKind kind;
+	if (loc_src < 0 && loc_dest < 0) kind = cudaMemcpyHostToHost;
+	else if (loc_dest < 0) kind = cudaMemcpyDeviceToHost;
+	else if (loc_src < 0) kind = cudaMemcpyHostToDevice;
+	else kind = cudaMemcpyDeviceToDevice;
 
-// 	if (loc_src == loc_dest) warning("CoCoMemcpy2D(dest=%p, ldest =%zu, src=%p, ldsrc = %zu, rows=%zu, cols=%zu, elemSize =%d, loc_dest=%d, loc_src=%d): Source location matches destination\n",
-// 	dest, ldest, src, ldsrc, rows, cols, elemSize, loc_dest, loc_src);
-// 	massert(cudaSuccess == cudaMemcpy2D(dest, ldest*elemSize, src, ldsrc*elemSize, rows*elemSize, cols, kind),
-// 	"CoCoMemcpy2D: cudaMemcpy2D failed\n");
-// 	//if (loc_src == -1 && loc_dest >=0) massert(CUBLAS_STATUS_SUCCESS == cublasSetMatrix(rows, cols, elemSize, src, ldsrc, dest, ldest), "CoCoMemcpy2DAsync: cublasSetMatrix failed\n");
-// 	//else if (loc_src >=0 && loc_dest == -1) massert(CUBLAS_STATUS_SUCCESS == cublasGetMatrix(rows, cols, elemSize, src, ldsrc, dest, ldest),  "CoCoMemcpy2DAsync: cublasGetMatrix failed");
+	if (loc_src == loc_dest) warning("CoCoMemcpy2D(dest=%p, ldest =%zu, src=%p, ldsrc = %zu, rows=%zu, cols=%zu, elemSize =%d, loc_dest=%d, loc_src=%d): Source location matches destination\n",
+	dest, ldest, src, ldsrc, rows, cols, elemSize, loc_dest, loc_src);
+	massert(cudaSuccess == cudaMemcpy2D(dest, ldest*elemSize, src, ldsrc*elemSize, rows*elemSize, cols, kind),
+	"CoCoMemcpy2D: cudaMemcpy2D failed\n");
+	//if (loc_src == -1 && loc_dest >=0) massert(CUBLAS_STATUS_SUCCESS == cublasSetMatrix(rows, cols, elemSize, src, ldsrc, dest, ldest), "CoCoMemcpy2DAsync: cublasSetMatrix failed\n");
+	//else if (loc_src >=0 && loc_dest == -1) massert(CUBLAS_STATUS_SUCCESS == cublasGetMatrix(rows, cols, elemSize, src, ldsrc, dest, ldest),  "CoCoMemcpy2DAsync: cublasGetMatrix failed");
 
-// }
+	return;
+}
+
 // void CoCMempy2DAsyncWrap3D(void* dest, long int ldest, void* src, long int ldsrc, long int rows, long int cols, short elemSize, short loc_dest, short loc_src, CQueue_p transfer_queue){
 // 	// Convert 2d input (as CoCoMemcpy2DAsync) to 3D for ...reasons.
 // 	enum cudaMemcpyKind kind = cudaMemcpyDefault;
@@ -262,35 +265,80 @@ void CoCoMemcpyAsync(void* dest, void* src, long long bytes, short loc_dest, sho
 // 	massert(cudaSuccess == cudaMemcpy3DAsync ( cudaMemcpy3DParms_p, stream) , "cudaMemcpy3DAsync failed\n");
 // }
 
-// void CoCoMemcpy2DAsync(void* dest, long int ldest, void* src, long int ldsrc, long int rows, long int cols, short elemSize, short loc_dest, short loc_src, CQueue_p transfer_queue){
-// 	short lvl = 6;
-// #ifdef DDEBUG
-// 	lprintf(lvl, "CoCoMemcpy2DAsync(dest=%p, ldest =%zu, src=%p, ldsrc = %zu, rows = %zu, cols = %zu, elemsize = %d, loc_dest = %d, loc_src = %d)\n",
-// 		dest, ldest, src, ldsrc, rows, cols, elemSize, loc_dest, loc_src);
-// #endif
+typedef struct CoCoMemcpy2D_data
+{
+	queue_data_p q_data;
+	void* dest;
+	long int ldest;
+	void* src;
+	long int ldsrc;
+	long int rows; 
+	long int cols;
+	short elemSize;
+	short loc_dest;
+	short loc_src;
+}* CoCoMemcpy2D_data_p;
 
-// 	cudaStream_t stream = *((cudaStream_t*)transfer_queue->cqueue_backend_ptr);
+void _CoCoMemcpy2DAsync(void* input)
+{
+	CoCoMemcpy2D_data_p input_unwrapped = (CoCoMemcpy2D_data_p) input;
 
-// 	int count = 42;
-// 	massert(CUBLAS_STATUS_SUCCESS == cudaGetDeviceCount(&count), "CoCoMemcpy2DAsync: cudaGetDeviceCount failed\n");
-// 	massert(-2 < loc_dest && loc_dest < count, "CoCoMemcpyAsync2D: Invalid destination device: %d\n", loc_dest);
-// 	massert(-2 < loc_src && loc_src < count, "CoCoMemcpyAsync2D: Invalid source device: %d\n", loc_src);
+	queue_data_p queue_backend_data = input_unwrapped->q_data;
 
-// 	enum cudaMemcpyKind kind;
-// 	if (loc_src < 0 && loc_dest < 0) kind = cudaMemcpyHostToHost;
-// 	else if (loc_dest < 0) kind = cudaMemcpyDeviceToHost;
-// 	else if (loc_src < 0) kind = cudaMemcpyHostToDevice;
-// 	else kind = cudaMemcpyDeviceToDevice;
+	get_lock_q(&queue_backend_data->queueLock);
+		// Get stream and increase stream index
+		int current_stream_ctr = queue_backend_data->stream_ctr;
+		queue_backend_data->stream_ctr = (current_stream_ctr + 1) % STREAM_POOL_SZ;
+	release_lock_q(&queue_backend_data->queueLock);
 
-// 	if (loc_src == loc_dest) warning("CoCoMemcpy2DAsync(dest=%p, ldest =%zu, src=%p, ldsrc = %zu, rows=%zu, cols=%zu, elemSize =%d, loc_dest=%d, loc_src=%d): Source location matches destination\n",
-// 	dest, ldest, src, ldsrc, rows, cols, elemSize, loc_dest, loc_src);
-// 	massert(cudaSuccess == cudaMemcpy2DAsync(dest, ldest*elemSize, src, ldsrc*elemSize,
-// 		rows*elemSize, cols, kind, stream),  "CoCoMemcpy2DAsync(dest=%p, ldest =%zu, src=%p, ldsrc = %zu,\
-// 			\nrows = %zu, cols = %zu, elemsize = %d, loc_dest = %d, loc_src = %d): cudaMemcpy2DAsync failed\n",
-// 			dest, ldest, src, ldsrc, rows, cols, elemSize, loc_dest, loc_src);
-// 	//if (loc_src == -1 && loc_dest >=0) massert(CUBLAS_STATUS_SUCCESS == cublasSetMatrixAsync(rows, cols, elemSize, src, ldsrc, dest, ldest, stream), "CoCoMemcpy2DAsync: cublasSetMatrixAsync failed\n");
-// 	//else if (loc_src >=0 && loc_dest == -1) massert(CUBLAS_STATUS_SUCCESS == cublasGetMatrixAsync(rows, cols, elemSize, src, ldsrc, dest, ldest, stream),  "CoCoMemcpy2DAsync: cublasGetMatrixAsync failed");
-// }
+	int count = 42;
+	massert(CUBLAS_STATUS_SUCCESS == cudaGetDeviceCount(&count), "_CoCoMemcpy2DAsync: cudaGetDeviceCount failed\n");
+	massert(-2 < input_unwrapped->loc_dest && input_unwrapped->loc_dest < count, "_CoCoMemcpy2DAsync: Invalid destination device: %d\n", input_unwrapped->loc_dest);
+	massert(-2 < input_unwrapped->loc_src && input_unwrapped->loc_src < count, "_CoCoMemcpy2DAsync: Invalid source device: %d\n", input_unwrapped->loc_src);
+
+	enum cudaMemcpyKind kind;
+	if (input_unwrapped->loc_src < 0 && input_unwrapped->loc_dest < 0) kind = cudaMemcpyHostToHost;
+	else if (input_unwrapped->loc_dest < 0) kind = cudaMemcpyDeviceToHost;
+	else if (input_unwrapped->loc_src < 0) kind = cudaMemcpyHostToDevice;
+	else kind = cudaMemcpyDeviceToDevice;
+
+	if (input_unwrapped->loc_src == input_unwrapped->loc_dest) warning("_CoCoMemcpy2DAsync(dest=%p, ldest =%zu, src=%p, ldsrc = %zu, rows=%zu, cols=%zu, elemSize =%d, loc_dest=%d, loc_src=%d): Source location matches destination\n",
+	input_unwrapped->dest, input_unwrapped->ldest, input_unwrapped->src, input_unwrapped->ldsrc, input_unwrapped->rows, input_unwrapped->cols, input_unwrapped->elemSize, input_unwrapped->loc_dest, input_unwrapped->loc_src);
+	massert(cudaSuccess == cudaMemcpy2DAsync(input_unwrapped->dest, (input_unwrapped->ldest)*(input_unwrapped->elemSize), input_unwrapped->src, (input_unwrapped->ldsrc)*(input_unwrapped->elemSize),
+		(input_unwrapped->rows)*(input_unwrapped->elemSize), input_unwrapped->cols, kind, queue_backend_data->stream_pool[current_stream_ctr]),  "_CoCoMemcpy2DAsync(dest=%p, ldest =%zu, src=%p, ldsrc = %zu,\
+			\nrows = %zu, cols = %zu, elemsize = %d, loc_dest = %d, loc_src = %d): cudaMemcpy2DAsync failed\n",
+			input_unwrapped->dest, input_unwrapped->ldest, input_unwrapped->src, input_unwrapped->ldsrc, input_unwrapped->rows, input_unwrapped->cols, input_unwrapped->elemSize, input_unwrapped->loc_dest, input_unwrapped->loc_src);
+
+	massert(cudaSuccess == cudaStreamSynchronize(queue_backend_data->stream_pool[current_stream_ctr]), "_CoCoMemcpy2DAsync: stream sync failed\n");
+
+	delete input_unwrapped;
+
+	return;
+}
+
+void CoCoMemcpy2DAsync(void* dest, long int ldest, void* src, long int ldsrc, long int rows, long int cols, short elemSize, short loc_dest, short loc_src, CQueue_p transfer_queue){
+	short lvl = 6;
+#ifdef DDEBUG
+	lprintf(lvl, "CoCoMemcpy2DAsync(dest=%p, ldest =%zu, src=%p, ldsrc = %zu, rows = %zu, cols = %zu, elemsize = %d, loc_dest = %d, loc_src = %d)\n",
+		dest, ldest, src, ldsrc, rows, cols, elemSize, loc_dest, loc_src);
+#endif
+
+	CoCoMemcpy2D_data_p data = new CoCoMemcpy2D_data;
+	data->q_data = (queue_data_p) transfer_queue->cqueue_backend_data;
+	data->dest = dest;
+	data->ldest = ldest;
+	data->src = src;
+	data->ldsrc = ldsrc;
+	data->rows = rows;
+	data->cols = cols;
+	data->elemSize = elemSize;
+	data->loc_dest = loc_dest;
+	data->loc_src = loc_src;
+
+	transfer_queue->add_host_func((void*) &_CoCoMemcpy2DAsync, (void*) data);
+
+	return;
+}
 
 // template<typename VALUETYPE>
 // void CoCoVecInit(VALUETYPE *vec, long long length, int seed, short loc)
