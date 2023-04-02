@@ -66,14 +66,18 @@ message("Universal Helpers - CMAKE_HIP_FLAGS: " ${CMAKE_HIP_FLAGS})
 
 # 	c) Includes
 if (${BACKEND} STREQUAL "CuCuBLAS")
-  set (CUDA_INCLUDE_DIRS ${CUDA_PREFIX}/include ${CUDA_PREFIX}/samples/common/inc)
-  include_directories(${CUDA_INCLUDE_DIRS})
-  message("Universal Helpers - CUDA_INCLUDE_DIRS: " ${CUDA_INCLUDE_DIRS})
+	set (CUDA_INCLUDE_DIRS ${CUDA_PREFIX}/include ${CUDA_PREFIX}/samples/common/inc)
+	include_directories(${CUDA_INCLUDE_DIRS})
+	message("Universal Helpers - CUDA_INCLUDE_DIRS: " ${CUDA_INCLUDE_DIRS})
 
 elseif(${BACKEND} STREQUAL "HIP")
-  set (HIP_INCLUDE_DIRS ${ROCM_PREFIX}/include )
-  include_directories(${HIP_INCLUDE_DIRS})
-  message("Universal Helpers - HIP_INCLUDE_DIRS: " ${HIP_INCLUDE_DIRS})
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_NVIDIA__ -D__HIP_PLATFORM_NVCC__") # for NVIDIA platform (can be changed to __HIP_PLATFORM_AMD__)
+	# set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_AMD__") # for NVIDIA platform (can be changed to __HIP_PLATFORM_AMD__)
+
+
+	set (HIP_INCLUDE_DIRS ${ROCM_PREFIX}/include )
+	include_directories(${HIP_INCLUDE_DIRS})
+	message("Universal Helpers - HIP_INCLUDE_DIRS: " ${HIP_INCLUDE_DIRS})
 
 else()
 	message(FATAL_ERROR "Universal Helpers - BACKEND flag error: BACKEND=" ${BACKEND} )
@@ -170,6 +174,7 @@ if (${BACKEND} STREQUAL "CuCuBLAS")
 elseif(${BACKEND} STREQUAL "HIP")
 	add_library(unihelpers SHARED
 	${UNIHELP_DIR_SRC}/general_utils.cpp
+	${UNIHELP_DIR_SRC}/data_management.cpp
 	${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cpp
 	${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cpp
 	${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cpp

@@ -9,7 +9,7 @@
 #define UNIHELPERS_BACK_H
 
 #include <hip/hip_runtime.h>
-#include "hipblas.h"
+#include <hipblas/hipblas.h>
 #include <cblas.h>
 
 #include <unihelpers.hpp>

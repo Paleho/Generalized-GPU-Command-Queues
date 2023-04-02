@@ -8,7 +8,8 @@
 #include <cstdio>
 #include <typeinfo>
 #include <float.h>
-#include <hiprand.h>
+#include <math.h>
+#include <hiprand/hiprand.h>
 
 #include "backend_wrappers.hpp"
 
@@ -58,10 +59,10 @@ short CoCoGetPtrLoc(const void * in_ptr)
 	hipPointerAttribute_t ptr_att;
 	if (hipSuccess != hipPointerGetAttributes(&ptr_att, in_ptr)) warning("CoCoGetPtrLoc(11.0 version, ptr =%p):\
 	Pointer not visible to CUDA, host alloc or error\n", in_ptr);
-	if (ptr_att.type == hipMemoryTypeHost) loc = -1;
-	else if (ptr_att.type == hipMemoryTypeDevice) loc = ptr_att.device;
+	if (ptr_att.memoryType == hipMemoryTypeHost) loc = -1;
+	else if (ptr_att.memoryType == hipMemoryTypeDevice) loc = ptr_att.device;
 	// TODO: Unified memory is considered available in the GPU as cuBLASXt ( not bad, not great)
-	else if (ptr_att.type == hipMemoryTypeManaged) 
+	else if (ptr_att.memoryType == hipMemoryTypeManaged) 
 	{
 		warning("CoCoGetPtrLoc(11.0 version, ptr =%p): using experimental hipMemoryTypeManaged\n", in_ptr);
 		loc = ptr_att.device;
@@ -158,7 +159,7 @@ void CoCoMemcpy(void* dest, void* src, long long bytes, short loc_dest, short lo
 	massert(-3 < loc_dest && loc_dest < count, "CoCoMemcpy: Invalid destination device: %d/n", loc_dest);
 	massert(-3 < loc_src && loc_src < count, "CoCoMemcpy: Invalid source device: %d/n", loc_src);
 
-	enum hipMemcpyKind kind = hipMemcpyHostToHost;
+	hipMemcpyKind kind = hipMemcpyHostToHost;
 	if (loc_src < 0 && loc_dest < 0) memcpy(dest, src, bytes);
 	else if (loc_dest < 0) kind = hipMemcpyDeviceToHost;
 	else if (loc_src < 0) kind = hipMemcpyHostToDevice;
@@ -182,7 +183,7 @@ void CoCoMemcpyAsync(void* dest, void* src, long long bytes, short loc_dest, sho
 	massert(-2 < loc_dest && loc_dest < count, "CoCoMemcpyAsync: Invalid destination device: %d\n", loc_dest);
 	massert(-2 < loc_src && loc_src < count, "CoCoMemcpyAsync: Invalid source device: %d\n", loc_src);
 
-	enum hipMemcpyKind kind;
+	hipMemcpyKind kind;
 	if (loc_src < 0 && loc_dest < 0) kind = hipMemcpyHostToHost;
 	else if (loc_dest < 0) kind = hipMemcpyDeviceToHost;
 	else if (loc_src < 0) kind = hipMemcpyHostToDevice;
@@ -206,7 +207,7 @@ void CoCoMemcpy2D(void* dest, long int ldest, void* src, long int ldsrc, long in
 	massert(-3 < loc_dest && loc_dest < count, "CoCoMemcpy2D: Invalid destination device: %d\n", loc_dest);
 	massert(-3 < loc_src && loc_src < count, "CoCoMemcpy2D: Invalid source device: %d\n", loc_src);
 
-	enum hipMemcpyKind kind;
+	hipMemcpyKind kind;
 	if (loc_src < 0 && loc_dest < 0) kind = hipMemcpyHostToHost;
 	else if (loc_dest < 0) kind = hipMemcpyDeviceToHost;
 	else if (loc_src < 0) kind = hipMemcpyHostToDevice;
@@ -222,7 +223,7 @@ void CoCoMemcpy2D(void* dest, long int ldest, void* src, long int ldsrc, long in
 }
 void CoCMempy2DAsyncWrap3D(void* dest, long int ldest, void* src, long int ldsrc, long int rows, long int cols, short elemSize, short loc_dest, short loc_src, CQueue_p transfer_queue){
 	// Convert 2d input (as CoCoMemcpy2DAsync) to 3D for ...reasons.
-	enum hipMemcpyKind kind = hipMemcpyDefault;
+	hipMemcpyKind kind = hipMemcpyDefault;
 	hipStream_t stream = *((hipStream_t*)transfer_queue->cqueue_backend_ptr);
 	hipMemcpy3DParms* cudaMemcpy3DParms_p = (hipMemcpy3DParms*) calloc(1, sizeof(hipMemcpy3DParms));
 	cudaMemcpy3DParms_p->extent = make_hipExtent(rows*elemSize, cols, 1);
@@ -245,7 +246,7 @@ void CoCoMemcpy2DAsync(void* dest, long int ldest, void* src, long int ldsrc, lo
 	massert(-2 < loc_dest && loc_dest < count, "CoCoMemcpyAsync2D: Invalid destination device: %d\n", loc_dest);
 	massert(-2 < loc_src && loc_src < count, "CoCoMemcpyAsync2D: Invalid source device: %d\n", loc_src);
 
-	enum hipMemcpyKind kind;
+	hipMemcpyKind kind;
 	if (loc_src < 0 && loc_dest < 0) kind = hipMemcpyHostToHost;
 	else if (loc_dest < 0) kind = hipMemcpyDeviceToHost;
 	else if (loc_src < 0) kind = hipMemcpyHostToDevice;

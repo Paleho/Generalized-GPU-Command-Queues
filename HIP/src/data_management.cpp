@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <typeinfo>
 #include <float.h>
-#include <hiprand.h>
+#include <hiprand/hiprand.h>
 
 #include "unihelpers.hpp"
 #include "backend_wrappers.hpp"
