@@ -26,7 +26,8 @@ add_definitions(-DPROBLEM_GPU_PERCENTAGE=${PROBLEM_GPU_PERCENTAGE})
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp -lm -Wuninitialized")
 message("Universal Helpers - CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
 
-set (CUDA_PREFIX "/usr/local/cuda-11.6") # Silver1
+# set (CUDA_PREFIX "/usr/local/cuda-11.6") # Silver1
+set (CUDA_PREFIX "/usr/local/cuda-11.5") # local
 add_definitions(-DCUDA_VER=1100)
 
 set (ROCM_PREFIX "/opt/rocm-5.4.0") # Silver1
@@ -97,6 +98,11 @@ message("Universal Helpers - CUDA_INTERNAL_LINK_LIB: " ${CUDA_INTERNAL_LINK_LIB}
 set (OPENBLAS_LD ${OPENBLAS_PREFIX}/lib)
 set (OPENBLAS_LINK  "-L${OPENBLAS_LD} -lopenblas" )
 message("Universal Helpers - OPENBLAS_LINK: " ${OPENBLAS_LINK} )
+set (HIP_LD ${ROCM_PREFIX}/hip/lib) 
+set (HIP_LINK "-L${HIP_LD}") 
+message("Universal Helpers - HIP_LINK: " ${HIP_LINK} )
+set (HIP_INTERNAL_LINK_LIB "${HIP_LINK}")
+message("Universal Helpers - HIP_INTERNAL_LINK_LIB: " ${HIP_INTERNAL_LINK_LIB})
 
 set(PROJECT_VERSION "1.0")
 message("Universal Helpers - PROJECT_VERSION: " ${PROJECT_VERSION})
@@ -181,7 +187,7 @@ elseif(${BACKEND} STREQUAL "HIP")
 	${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cpp
 	${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cpp
 	)
-	target_link_libraries(unihelpers ${OPENBLAS_LINK})
+	target_link_libraries(unihelpers ${HIP_INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
 
 	configure_file(${UNIHELP_DIR_INC}/unihelpers.hpp ${UNIHELP_INSTALL_INC}/unihelpers.hpp COPYONLY)
 	## FIXME: This is a temporary cheat for deployment, must be removed at some point (?). It has to do with TransposeTranslate.
