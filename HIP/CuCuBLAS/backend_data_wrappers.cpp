@@ -9,9 +9,33 @@
 #include <typeinfo>
 #include <float.h>
 #include <math.h>
-#include <hiprand/hiprand.h>
+#include <random>
 
 #include "backend_wrappers.hpp"
+
+int customRandGenerateUniform (int seed, float* outputPtr, size_t num){
+	std::default_random_engine generator(seed);
+
+	float a = 0.0, b = 1.0;
+    std::uniform_real_distribution<float> distribution(a, b);
+
+	for(int i = 0; i < num; i++)
+		outputPtr[i] = distribution(generator);
+
+	return 0;
+}
+
+int customRandGenerateUniformDouble(int seed, double* outputPtr, size_t num){
+	std::default_random_engine generator(seed);
+
+	double a = 0.0, b = 1.0;
+    std::uniform_real_distribution<double> distribution(a, b);
+
+	for(int i = 0; i < num; i++)
+		outputPtr[i] = distribution(generator);
+
+	return 0;
+}
 
 long int CoCoGetMaxDimSqAsset2D(short Asset2DNum, short dsize, long int step, short loc){
 	size_t free_cuda_mem, max_cuda_mem;
@@ -275,19 +299,12 @@ void CoCoVecInit(VALUETYPE *vec, long long length, int seed, short loc)
 
 	//if (prev_loc != loc) warning("CoCoVecInit: Initialized vector in other device (Previous device: %d, init in: %d)\n", prev_loc, loc);
     	hipSetDevice(loc);
-	hiprandGenerator_t gen;
-	/* Create pseudo-random number generator */
-	massert(hiprandCreateGenerator(&gen, HIPRAND_RNG_PSEUDO_DEFAULT) == hipSuccess,
-          hipGetErrorString(hipGetLastError()));
-	/* Set seed */
-	massert(hiprandSetPseudoRandomGeneratorSeed(gen, seed) == hipSuccess,
-          hipGetErrorString(hipGetLastError()));
+	
+	warning("CoCoVecInit: Using random number gen based on <random> lib (HIP implementation)");
 	if (typeid(VALUETYPE) == typeid(float))
-	  massert(hiprandGenerateUniform(gen, (float*) vec, length) == hipSuccess,
-            hipGetErrorString(hipGetLastError()));
+		massert(customRandGenerateUniform(0, (float*) vec, length) == 0, "CoCoVecInit: customRandGenerateUniform failed!");
 	else if (typeid(VALUETYPE) == typeid(double))
-	  massert(hiprandGenerateUniformDouble(gen, (double*) vec, length) == hipSuccess,
-            hipGetErrorString(hipGetLastError()));
+		massert(customRandGenerateUniformDouble(0, (double*) vec, length) == 0, "CoCoVecInit: customRandGenerateUniformDouble failed!");
 	cudaCheckErrors();
     	if (prev_loc != loc){
 		//warning("CoCoVecInit: Reseting device to previous: %d\n", prev_loc);

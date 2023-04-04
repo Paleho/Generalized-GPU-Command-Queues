@@ -5,8 +5,6 @@
 ///			  (HIPified version of original CUDA code)
 ///
 
-#include <hipblas/hipblas.h>
-#include <hip/hip_runtime.h>
 #include <pthread.h>
 #include <cblas.h>
 

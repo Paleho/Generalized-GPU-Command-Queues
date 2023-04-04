@@ -8,7 +8,6 @@
 #include <cstdio>
 #include <typeinfo>
 #include <float.h>
-#include <hiprand/hiprand.h>
 
 #include "backend_wrappers.hpp"
 
