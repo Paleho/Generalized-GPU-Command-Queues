@@ -12,6 +12,10 @@
 
 #include "backend_wrappers.hpp"
 
+inline static hipError_t hipLaunchHostFunc(hipStream_t stream, hipHostFn_t fn, void* userData) {
+    return hipCUDAErrorTohipError(cudaLaunchHostFunc(stream, fn, userData));
+}
+
 int lvl = 1;
 
 int Event_num_device[128] = {0};
