@@ -26,8 +26,8 @@ add_definitions(-DPROBLEM_GPU_PERCENTAGE=${PROBLEM_GPU_PERCENTAGE})
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp -lm -Wuninitialized")
 message("Universal Helpers - CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
 
-# set (CUDA_PREFIX "/usr/local/cuda-11.6") # Silver1
-set (CUDA_PREFIX "/usr/local/cuda-11.5") # local
+set (CUDA_PREFIX "/usr/local/cuda-11.6") # Silver1
+# set (CUDA_PREFIX "/usr/local/cuda-11.5") # local
 add_definitions(-DCUDA_VER=1100)
 
 set (ROCM_PREFIX "/opt/rocm-5.4.0") # Silver1
@@ -78,6 +78,8 @@ elseif(${BACKEND} STREQUAL "HIP")
 
 	set (HIP_INCLUDE_DIRS ${ROCM_PREFIX}/include )
 	include_directories(${HIP_INCLUDE_DIRS})
+	set (CUDA_INCLUDE_DIRS ${CUDA_PREFIX}/include ${CUDA_PREFIX}/samples/common/inc)
+	include_directories(${CUDA_INCLUDE_DIRS})
 	message("Universal Helpers - HIP_INCLUDE_DIRS: " ${HIP_INCLUDE_DIRS})
 
 else()
@@ -88,6 +90,16 @@ set(OPENBLAS_PREFIX "/home/users/spoutas/Libs/OpenBLAS-install") # silver1
 set (OPENBLAS_INCLUDE_DIRS ${OPENBLAS_PREFIX}/include)
 include_directories(${OPENBLAS_INCLUDE_DIRS})
 message("Universal Helpers - OPENBLAS_INCLUDE_DIRS: " ${OPENBLAS_INCLUDE_DIRS})
+
+if(${BACKEND} STREQUAL "HIP")
+	set(HIPBLAS_PREFIX "/opt/rocm-5.4.0/hipblas") # silver1
+	set (HIPBLAS_INCLUDE_DIRS ${HIPBLAS_PREFIX}/include)
+	include_directories(${HIPBLAS_INCLUDE_DIRS})
+	message("Universal Helpers - HIPBLAS_INCLUDE_DIRS: " ${HIPBLAS_INCLUDE_DIRS})
+
+else()
+	message(FATAL_ERROR "Universal Helpers - BACKEND flag error: BACKEND=" ${BACKEND} )
+endif()
 
 # 	d) Link Libraries
 set (CUDA_LD ${CUDA_PREFIX}/lib64) # or /lib depending on system
@@ -103,6 +115,9 @@ set (HIP_LINK "-L${HIP_LD}")
 message("Universal Helpers - HIP_LINK: " ${HIP_LINK} )
 set (HIP_INTERNAL_LINK_LIB "${HIP_LINK}")
 message("Universal Helpers - HIP_INTERNAL_LINK_LIB: " ${HIP_INTERNAL_LINK_LIB})
+set (HIPBLAS_LD ${HIPBLAS_PREFIX}/lib)
+set (HIPBLAS_LINK  "-L${HIPBLAS_LD} -lhipblas" )
+message("Universal Helpers - HIPBLAS_LINK: " ${HIPBLAS_LINK} )
 
 set(PROJECT_VERSION "1.0")
 message("Universal Helpers - PROJECT_VERSION: " ${PROJECT_VERSION})
@@ -187,7 +202,7 @@ elseif(${BACKEND} STREQUAL "HIP")
 	${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cpp
 	${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cpp
 	)
-	target_link_libraries(unihelpers ${HIP_INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
+	target_link_libraries(unihelpers ${HIP_INTERNAL_LINK_LIB} ${OPENBLAS_LINK} ${CUDA_INTERNAL_LINK_LIB} ${HIPBLAS_LINK})
 
 	configure_file(${UNIHELP_DIR_INC}/unihelpers.hpp ${UNIHELP_INSTALL_INC}/unihelpers.hpp COPYONLY)
 	## FIXME: This is a temporary cheat for deployment, must be removed at some point (?). It has to do with TransposeTranslate.
@@ -205,7 +220,7 @@ message( "----------------------------------------------------------------------
 
 # Testing
 enable_testing()
-if (${BACKEND} STREQUAL "CuCuBLAS")
+if (${BACKEND} STREQUAL "CuCuBLAS" OR ${BACKEND} STREQUAL "HIP")
 	add_subdirectory(testing)
 else()
 endif()
