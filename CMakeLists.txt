@@ -113,6 +113,8 @@ message("Universal Helpers - OPENBLAS_LINK: " ${OPENBLAS_LINK} )
 set (HIP_LD ${ROCM_PREFIX}/hip/lib) 
 set (HIP_LINK "-L${HIP_LD}") 
 message("Universal Helpers - HIP_LINK: " ${HIP_LINK} )
+set (HIPRAND_LINK  "-L${ROCM_PREFIX}/lib -lhiprand" )
+message("Universal Helpers - HIPRAND_LINK: " ${HIPRAND_LINK} )
 set (HIP_INTERNAL_LINK_LIB "${HIP_LINK}")
 message("Universal Helpers - HIP_INTERNAL_LINK_LIB: " ${HIP_INTERNAL_LINK_LIB})
 set (HIPBLAS_LD ${HIPBLAS_PREFIX}/lib)
@@ -202,7 +204,7 @@ elseif(${BACKEND} STREQUAL "HIP")
 	${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cpp
 	${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cpp
 	)
-	target_link_libraries(unihelpers ${HIP_INTERNAL_LINK_LIB} ${OPENBLAS_LINK} ${CUDA_INTERNAL_LINK_LIB} ${HIPBLAS_LINK})
+	target_link_libraries(unihelpers ${HIP_INTERNAL_LINK_LIB} ${OPENBLAS_LINK} ${CUDA_INTERNAL_LINK_LIB} ${HIPBLAS_LINK} ${HIPRAND_LINK})
 
 	configure_file(${UNIHELP_DIR_INC}/unihelpers.hpp ${UNIHELP_INSTALL_INC}/unihelpers.hpp COPYONLY)
 	## FIXME: This is a temporary cheat for deployment, must be removed at some point (?). It has to do with TransposeTranslate.

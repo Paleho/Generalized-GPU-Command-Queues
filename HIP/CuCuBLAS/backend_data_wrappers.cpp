@@ -2,40 +2,16 @@
 /// \author Poutas Sokratis (sokratispoutas@gmail.com)
 ///
 /// \brief Some HIP function calls with added error-checking
-///			(HIPified version of original CUDA code)
+///					(HIPified version of original CUDA code)
 ///
 
 #include <cstdio>
 #include <typeinfo>
 #include <float.h>
 #include <math.h>
-#include <random>
+#include <hiprand/hiprand.h>
 
 #include "backend_wrappers.hpp"
-
-int customRandGenerateUniform (int seed, float* outputPtr, size_t num){
-	std::default_random_engine generator(seed);
-
-	float a = 0.0, b = 1.0;
-    std::uniform_real_distribution<float> distribution(a, b);
-
-	for(int i = 0; i < num; i++)
-		outputPtr[i] = distribution(generator);
-
-	return 0;
-}
-
-int customRandGenerateUniformDouble(int seed, double* outputPtr, size_t num){
-	std::default_random_engine generator(seed);
-
-	double a = 0.0, b = 1.0;
-    std::uniform_real_distribution<double> distribution(a, b);
-
-	for(int i = 0; i < num; i++)
-		outputPtr[i] = distribution(generator);
-
-	return 0;
-}
 
 long int CoCoGetMaxDimSqAsset2D(short Asset2DNum, short dsize, long int step, short loc){
 	size_t free_cuda_mem, max_cuda_mem;
@@ -86,7 +62,7 @@ short CoCoGetPtrLoc(const void * in_ptr)
 	if (ptr_att.memoryType == hipMemoryTypeHost) loc = -1;
 	else if (ptr_att.memoryType == hipMemoryTypeDevice) loc = ptr_att.device;
 	// TODO: Unified memory is considered available in the GPU as cuBLASXt ( not bad, not great)
-	else if (ptr_att.memoryType == hipMemoryTypeManaged) 
+	else if (ptr_att.memoryType == hipMemoryTypeManaged)
 	{
 		warning("CoCoGetPtrLoc(11.0 version, ptr =%p): using experimental hipMemoryTypeManaged\n", in_ptr);
 		loc = ptr_att.device;
@@ -114,7 +90,7 @@ void *pin_malloc(long long count) {
 
 void* CoCoMalloc(long long bytes, short loc){
   int count = 42;
-  massert(HIPBLAS_STATUS_SUCCESS == hipGetDeviceCount(&count), "CoCoMalloc: hipGetDeviceCount failed");
+  massert(hipSuccess == hipGetDeviceCount(&count), "CoCoMalloc: hipGetDeviceCount failed");
   void *ptr = NULL;
 
   if (-2 == loc) {
@@ -157,7 +133,7 @@ void pin_free(void *gpuptr) {
 
 void CoCoFree(void * ptr, short loc){
   int count = 42;
-  massert(HIPBLAS_STATUS_SUCCESS == hipGetDeviceCount(&count), "CoCoFree: hipGetDeviceCount failed");
+  massert(hipSuccess == hipGetDeviceCount(&count), "CoCoFree: hipGetDeviceCount failed");
 
   if (-2 == loc) free(ptr);
   else if (-1 == loc) pin_free(ptr);
@@ -179,7 +155,7 @@ void CoCoFree(void * ptr, short loc){
 void CoCoMemcpy(void* dest, void* src, long long bytes, short loc_dest, short loc_src)
 {
 	int count = 42;
-	massert(HIPBLAS_STATUS_SUCCESS == hipGetDeviceCount(&count), "CoCoMemcpy: hipGetDeviceCount failed");
+	massert(hipSuccess == hipGetDeviceCount(&count), "CoCoMemcpy: hipGetDeviceCount failed");
 	massert(-3 < loc_dest && loc_dest < count, "CoCoMemcpy: Invalid destination device: %d/n", loc_dest);
 	massert(-3 < loc_src && loc_src < count, "CoCoMemcpy: Invalid source device: %d/n", loc_src);
 
@@ -193,7 +169,7 @@ void CoCoMemcpy(void* dest, void* src, long long bytes, short loc_dest, short lo
 	if (loc_src == loc_dest) warning("CoCoMemcpy(dest=%p, src=%p, bytes=%lld, loc_dest=%d, loc_src=%d): Source location matches destination\n",
 	dest, src, bytes, loc_dest, loc_src);
 #endif
-	massert(HIPBLAS_STATUS_SUCCESS == hipMemcpy(dest, src, bytes, kind), "CoCoMemcpy: hipMemcpy from device src=%d to dest=%d failed\n", loc_src, loc_dest);
+	massert(hipSuccess == hipMemcpy(dest, src, bytes, kind), "CoCoMemcpy: hipMemcpy from device src=%d to dest=%d failed\n", loc_src, loc_dest);
 	cudaCheckErrors();
 }
 
@@ -203,7 +179,7 @@ void CoCoMemcpyAsync(void* dest, void* src, long long bytes, short loc_dest, sho
 	hipStream_t stream = *((hipStream_t*)transfer_queue->cqueue_backend_ptr);
 
 	int count = 42;
-	massert(HIPBLAS_STATUS_SUCCESS == hipGetDeviceCount(&count), "CoCoMemcpyAsync: hipGetDeviceCount failed\n");
+	massert(hipSuccess == hipGetDeviceCount(&count), "CoCoMemcpyAsync: hipGetDeviceCount failed\n");
 	massert(-2 < loc_dest && loc_dest < count, "CoCoMemcpyAsync: Invalid destination device: %d\n", loc_dest);
 	massert(-2 < loc_src && loc_src < count, "CoCoMemcpyAsync: Invalid source device: %d\n", loc_src);
 
@@ -227,7 +203,7 @@ void CoCoMemcpy2D(void* dest, long int ldest, void* src, long int ldsrc, long in
 		dest, ldest, src, ldsrc, rows, cols, elemSize, loc_dest, loc_src);
 #endif
 	int count = 42;
-	massert(HIPBLAS_STATUS_SUCCESS == hipGetDeviceCount(&count), "CoCoMemcpy2D: hipGetDeviceCount failed\n");
+	massert(hipSuccess == hipGetDeviceCount(&count), "CoCoMemcpy2D: hipGetDeviceCount failed\n");
 	massert(-3 < loc_dest && loc_dest < count, "CoCoMemcpy2D: Invalid destination device: %d\n", loc_dest);
 	massert(-3 < loc_src && loc_src < count, "CoCoMemcpy2D: Invalid source device: %d\n", loc_src);
 
@@ -266,7 +242,7 @@ void CoCoMemcpy2DAsync(void* dest, long int ldest, void* src, long int ldsrc, lo
 	hipStream_t stream = *((hipStream_t*)transfer_queue->cqueue_backend_ptr);
 
 	int count = 42;
-	massert(HIPBLAS_STATUS_SUCCESS == hipGetDeviceCount(&count), "CoCoMemcpy2DAsync: hipGetDeviceCount failed\n");
+	massert(hipSuccess == hipGetDeviceCount(&count), "CoCoMemcpy2DAsync: hipGetDeviceCount failed\n");
 	massert(-2 < loc_dest && loc_dest < count, "CoCoMemcpyAsync2D: Invalid destination device: %d\n", loc_dest);
 	massert(-2 < loc_src && loc_src < count, "CoCoMemcpyAsync2D: Invalid source device: %d\n", loc_src);
 
@@ -299,12 +275,19 @@ void CoCoVecInit(VALUETYPE *vec, long long length, int seed, short loc)
 
 	//if (prev_loc != loc) warning("CoCoVecInit: Initialized vector in other device (Previous device: %d, init in: %d)\n", prev_loc, loc);
     	hipSetDevice(loc);
-	
-	warning("CoCoVecInit: Using random number gen based on <random> lib (HIP implementation)");
+	hiprandGenerator_t gen;
+	/* Create pseudo-random number generator */
+	massert(hiprandCreateGenerator(&gen, HIPRAND_RNG_PSEUDO_DEFAULT) == HIPRAND_STATUS_SUCCESS,
+          hipGetErrorString(hipGetLastError()));
+	/* Set seed */
+	massert(hiprandSetPseudoRandomGeneratorSeed(gen, seed) == HIPRAND_STATUS_SUCCESS,
+          hipGetErrorString(hipGetLastError()));
 	if (typeid(VALUETYPE) == typeid(float))
-		massert(customRandGenerateUniform(0, (float*) vec, length) == 0, "CoCoVecInit: customRandGenerateUniform failed!");
+	  massert(hiprandGenerateUniform(gen, (float*) vec, length) == HIPRAND_STATUS_SUCCESS,
+            hipGetErrorString(hipGetLastError()));
 	else if (typeid(VALUETYPE) == typeid(double))
-		massert(customRandGenerateUniformDouble(0, (double*) vec, length) == 0, "CoCoVecInit: customRandGenerateUniformDouble failed!");
+	  massert(hiprandGenerateUniformDouble(gen, (double*) vec, length) == HIPRAND_STATUS_SUCCESS,
+            hipGetErrorString(hipGetLastError()));
 	cudaCheckErrors();
     	if (prev_loc != loc){
 		//warning("CoCoVecInit: Reseting device to previous: %d\n", prev_loc);
