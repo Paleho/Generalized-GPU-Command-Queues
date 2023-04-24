@@ -86,6 +86,7 @@ add_definitions(-DVERSION="${PROJECT_VERSION}")
 project (CoCopeLia-Helpers VERSION ${PROJECT_VERSION} DESCRIPTION "Universal Helper function lib for CoCoPeLia" LANGUAGES CXX CUDA)
 message( "------------------------------------------------------------------------------------------------")
 message( "Universal Helpers - PROJECT_SOURCE_DIR: " ${PROJECT_SOURCE_DIR} )
+#message( "Universal Helpers - CMAKE_CURRENT_SOURCE_DIR: " ${CMAKE_CURRENT_SOURCE_DIR} )
 
 set ( UNIHELP_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
 message( "Universal Helpers - UNIHELP_DIR: " ${UNIHELP_DIR} )
@@ -99,6 +100,7 @@ message( "Universal Helpers - Source DIR: " ${UNIHELP_DIR_SRC} )
 
 set (BACKEND_UNIHELP_DIR_SRC ${UNIHELP_DIR}/${BACKEND})
 message( "Universal Helpers - BACKEND DIR: " ${BACKEND_UNIHELP_DIR_SRC} )
+message( "Universal Helpers - Included DIR: " ${BACKEND_UNIHELP_DIR_SRC} )
 include_directories(${BACKEND_UNIHELP_DIR_SRC})
 
 ### Install Dir
@@ -115,7 +117,6 @@ file(MAKE_DIRECTORY ${UNIHELP_INSTALL})
 set (UNIHELP_INSTALL_LIB ${UNIHELP_INSTALL}/lib)
 file(MAKE_DIRECTORY ${UNIHELP_INSTALL_LIB})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${UNIHELP_INSTALL_LIB})
-message("Universal Helpers - CMAKE_LIBRARY_OUTPUT_DIRECTORY: " ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 set (UNIHELP_INSTALL_INC ${UNIHELP_INSTALL}/include)
 file(MAKE_DIRECTORY ${UNIHELP_INSTALL_INC})
@@ -124,15 +125,30 @@ file(MAKE_DIRECTORY ${UNIHELP_INSTALL_INC})
 #FIXME: Current CoCoPeLia version only work with lazy events.
 add_definitions(-DENABLE_LAZY_EVENTS)
 
-add_library(unihelpers SHARED
-${UNIHELP_DIR_SRC}/general_utils.cpp
-${UNIHELP_DIR_SRC}/data_management.cpp
-${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
-${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
-${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
-${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cu
-${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cu
-)
+#TODO: Remove this set
+set(BUILD_BLAS_WRAPPERS_FLAG 1)
+if(${BUILD_BLAS_WRAPPERS_FLAG} EQUAL 1)
+    add_definitions(-DBUILD_BLAS_WRAPPERS_FLAG)
+
+    add_library(unihelpers SHARED
+    ${UNIHELP_DIR_SRC}/general_utils.cpp
+    ${UNIHELP_DIR_SRC}/data_management.cpp
+    ${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
+    ${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
+    ${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
+    ${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cu
+    ${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cu
+    )
+else()
+    add_library(unihelpers SHARED
+    ${UNIHELP_DIR_SRC}/general_utils.cpp
+    ${UNIHELP_DIR_SRC}/data_management.cpp    
+    ${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
+    ${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
+    ${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
+    )
+endif()
+
 target_link_libraries(unihelpers ${INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
 configure_file(${UNIHELP_DIR_INC}/unihelpers.hpp ${UNIHELP_INSTALL_INC}/unihelpers.hpp COPYONLY)
 

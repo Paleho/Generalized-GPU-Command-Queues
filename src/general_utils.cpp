@@ -221,7 +221,7 @@ void check_benchmark(char *filename){
 	FILE* fp = fopen(filename,"r");
 	if (!fp) {
 		fp = fopen(filename,"w+");
-		if (!fp) error("report_results: LogFile failed to open");
+		if (!fp) error("check_benchmark: LogFile failed to open");
 		else warning("Generating Logfile...");
 		fclose(fp);
 	}
@@ -245,11 +245,27 @@ long long gemm_memory(long int M, long int N, long int K, long int A_loc, long i
 	return (M * K * A_loc + K * N * B_loc + M * N * C_loc)*dsize;
 }
 
+long long gemv_flops(long int M, long int N){
+	return (long long) M * (2 * N + 1);
+}
+
+long long gemv_memory(long int M, long int N, long int A_loc, long int x_loc, long int y_loc, short dsize){
+	return (M * N * A_loc + N * x_loc + M * y_loc)*dsize;
+}
+
 long long axpy_flops(long int  N){
 	return (long long) 2* N;
 }
 
 long long axpy_memory(long int  N, long int x_loc, long int y_loc, short dsize){
+	return (long long) N*(x_loc + y_loc)*dsize;
+}
+
+long long dot_flops(long int  N){
+	return (long long) 2* N;
+}
+
+long long dot_memory(long int  N, long int x_loc, long int y_loc, short dsize){
 	return (long long) N*(x_loc + y_loc)*dsize;
 }
 
@@ -284,3 +300,11 @@ long long sgemm_bytes(long int M, long int N, long int K){
 	return (M * K + K * N + M * N * 2)*sizeof(float) ;
 }
 */
+
+void CoCoSetTimerAsync(void* wrapped_timer_Ptr){
+  double* timer = (double*) wrapped_timer_Ptr;
+  *timer = csecond();
+#ifdef DEBUG
+  lprintf(6, "CoCoSetTimerAsync(%p) ran succesfully.\n", wrapped_timer_Ptr);
+#endif
+}

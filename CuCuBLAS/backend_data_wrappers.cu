@@ -40,9 +40,8 @@ long int CoCoGetMaxDimAsset1D(short Asset1DNum, short dsize, long int step, shor
 
 short CoCoGetPtrLoc(const void * in_ptr)
 {
-#ifndef CUDA_VER
-#error CUDA_VER Undefined!
-#elif (CUDA_VER == 920)
+// This is legacy code for CUDA 9.2 <<. It should not be used due to CUDA ptr_att back-end struct changes in latest versions
+#ifdef CUDA_9_WRAPPER_MESS
 	short loc = -2;
 	cudaPointerAttributes ptr_att;
 	if (cudaSuccess != cudaPointerGetAttributes(&ptr_att, in_ptr)) warning("CoCoGetPtrLoc(9.2 version, ptr =%p):\
@@ -52,7 +51,7 @@ short CoCoGetPtrLoc(const void * in_ptr)
 	else if (ptr_att.isManaged) loc = ptr_att.device;
 	else error("CoCoGetPtrLoc(9.2 version, ptr =%p): Invalid memory type", in_ptr);
 	return loc;
-#elif (CUDA_VER == 1100)
+#else
 	short loc = -2;
 	cudaPointerAttributes ptr_att;
 	if (cudaSuccess != cudaPointerGetAttributes(&ptr_att, in_ptr)) warning("CoCoGetPtrLoc(11.0 version, ptr =%p):\
@@ -63,8 +62,6 @@ short CoCoGetPtrLoc(const void * in_ptr)
 	else if (ptr_att.type == cudaMemoryTypeManaged) loc = ptr_att.device;
 	else error("CoCoGetPtrLoc(11.0 version, ptr =%p): Invalid memory type", in_ptr);
 	return loc;
-#else
-#error Unknown CUDA_VER!
 #endif
 }
 
@@ -169,9 +166,11 @@ void CoCoMemcpy(void* dest, void* src, long long bytes, short loc_dest, short lo
 
 void CoCoMemcpyAsync(void* dest, void* src, long long bytes, short loc_dest, short loc_src, CQueue_p transfer_queue)
 {
-
+#ifdef ENABLE_PARALLEL_BACKEND
+	cudaStream_t stream = *((cudaStream_t*)transfer_queue->cqueue_backend_ptr[transfer_queue->backend_ctr]);
+#else
 	cudaStream_t stream = *((cudaStream_t*)transfer_queue->cqueue_backend_ptr);
-
+#endif
 	int count = 42;
 	massert(CUBLAS_STATUS_SUCCESS == cudaGetDeviceCount(&count), "CoCoMemcpyAsync: cudaGetDeviceCount failed\n");
 	massert(-2 < loc_dest && loc_dest < count, "CoCoMemcpyAsync: Invalid destination device: %d\n", loc_dest);
@@ -232,9 +231,11 @@ void CoCoMemcpy2DAsync(void* dest, long int ldest, void* src, long int ldsrc, lo
 	lprintf(lvl, "CoCoMemcpy2DAsync(dest=%p, ldest =%zu, src=%p, ldsrc = %zu, rows = %zu, cols = %zu, elemsize = %d, loc_dest = %d, loc_src = %d)\n",
 		dest, ldest, src, ldsrc, rows, cols, elemSize, loc_dest, loc_src);
 #endif
-
+#ifdef ENABLE_PARALLEL_BACKEND
+	cudaStream_t stream = *((cudaStream_t*)transfer_queue->cqueue_backend_ptr[transfer_queue->backend_ctr]);
+#else
 	cudaStream_t stream = *((cudaStream_t*)transfer_queue->cqueue_backend_ptr);
-
+#endif
 	int count = 42;
 	massert(CUBLAS_STATUS_SUCCESS == cudaGetDeviceCount(&count), "CoCoMemcpy2DAsync: cudaGetDeviceCount failed\n");
 	massert(-2 < loc_dest && loc_dest < count, "CoCoMemcpyAsync2D: Invalid destination device: %d\n", loc_dest);
@@ -320,7 +321,7 @@ void CoCoEnableLinks(short target_dev_i, short num_devices){
 		int dev_id_current = deidxize(j);
 		if (dev_id_target == dev_id_current || dev_id_target == -1 || dev_id_current == -1) continue;
 		int can_access_peer;
-		massert(cudaSuccess == cudaDeviceCanAccessPeer(&can_access_peer, dev_id_target, dev_id_current), "CoCopeLiaDgemm: cudaDeviceCanAccessPeer failed\n");
+		massert(cudaSuccess == cudaDeviceCanAccessPeer(&can_access_peer, dev_id_target, dev_id_current), "PARALiaDgemm: cudaDeviceCanAccessPeer failed\n");
 		if(can_access_peer){
 			cudaError_t check_peer = cudaDeviceEnablePeerAccess(dev_id_current, 0);
 			if(check_peer == cudaSuccess){ ;
