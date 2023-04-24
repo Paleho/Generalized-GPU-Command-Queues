@@ -93,7 +93,6 @@ if(${BACKEND} STREQUAL "HIP")
 	message("Universal Helpers - HIPBLAS_INCLUDE_DIRS: " ${HIPBLAS_INCLUDE_DIRS})
 
 else()
-	message(FATAL_ERROR "Universal Helpers - BACKEND flag error: BACKEND=" ${BACKEND} )
 endif()
 
 # 	d) Link Libraries
@@ -177,6 +176,8 @@ add_definitions(-DENABLE_LAZY_EVENTS)
 set(BUILD_BLAS_WRAPPERS_FLAG 1)
 if (${BACKEND} STREQUAL "CuCuBLAS")
 	if(${BUILD_BLAS_WRAPPERS_FLAG} EQUAL 1)
+		add_definitions(-DBUILD_BLAS_WRAPPERS_FLAG)
+
 		add_library(unihelpers SHARED
 		${UNIHELP_DIR_SRC}/general_utils.cpp
 		${UNIHELP_DIR_SRC}/data_management.cpp
@@ -200,6 +201,8 @@ if (${BACKEND} STREQUAL "CuCuBLAS")
 
 elseif(${BACKEND} STREQUAL "HIP")
 	if(${BUILD_BLAS_WRAPPERS_FLAG} EQUAL 1)
+		add_definitions(-DBUILD_BLAS_WRAPPERS_FLAG)
+		
 		add_library(unihelpers SHARED
 		${UNIHELP_DIR_SRC}/general_utils.cpp
 		${UNIHELP_DIR_SRC}/data_management.cpp
