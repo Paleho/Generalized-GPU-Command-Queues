@@ -27,8 +27,14 @@ typedef class CommandQueue
 {
 	private:
 	public:
+#ifdef ENABLE_PARALLEL_BACKEND
+		void* cqueue_backend_ptr[MAX_BACKEND_L];
+		void* cqueue_backend_data[MAX_BACKEND_L];
+		int backend_ctr = 0;
+#else
 		void* cqueue_backend_ptr;
 		void* cqueue_backend_data;
+#endif
 		int dev_id;
 
 		//Constructor
@@ -39,7 +45,10 @@ typedef class CommandQueue
 		void sync_barrier();
 		void add_host_func(void* func, void* data);
 		void wait_for_event(Event_p Wevent);
-		
+#ifdef ENABLE_PARALLEL_BACKEND
+		int request_parallel_backend();
+		void set_parallel_backend(int backend_ctr);
+#endif
 		std::string name;
 		void print() { std::cout << "Command Queue : " << name; }
 
@@ -139,6 +148,7 @@ typedef struct link_road{
 	int hop_uid_list[LOC_NUM];
 	void* hop_buf_list[LOC_NUM];
 	int hop_ldim_list[LOC_NUM];
+	int starting_hop = 0;
 
 	CQueue_p hop_cqueue_list[LOC_NUM-1];
 	Event_p hop_event_list[LOC_NUM-1];
@@ -207,8 +217,14 @@ double Gval_per_s(long long value, double time);
 long long gemm_flops(long int M, long int N, long int K);
 long long gemm_memory(long int M, long int N, long int K, long int A_loc, long int B_loc, long int C_loc, short dsize);
 
+long long gemv_flops(long int M, long int N);
+long long gemv_memory(long int M, long int N, long int A_loc, long int x_loc, long int y_loc, short dsize);
+
 long long axpy_flops(long int  N);
 long long axpy_memory(long int N, long int x_loc, long int y_loc, short dsize);
+
+long long dot_flops(long int  N);
+long long dot_memory(long int N, long int x_loc, long int y_loc, short dsize);
 
 long int count_lines(FILE* fp); // TODO: Where is this used?
 void check_benchmark(char *filename);

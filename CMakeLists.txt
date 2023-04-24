@@ -27,12 +27,10 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp -lm -Wuninitialized")
 message("Universal Helpers - CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
 
 set (CUDA_PREFIX "/usr/local/cuda-11.6") # Silver1
-# set (CUDA_PREFIX "/usr/local/cuda-11.5") # local
 add_definitions(-DCUDA_VER=1100)
 
 set (ROCM_PREFIX "/opt/rocm-5.4.0") # Silver1
 
-# TODO: CXX_PREFIX for Silver1 ?
 message("Universal Helpers - CXX_PREFIX: " ${CXX_PREFIX})
 
 ## CMAKE_CUDA_ARCHITECTURES
@@ -56,7 +54,6 @@ endif()
 # 	a) Compiler
 set (CMAKE_CUDA_COMPILER ${CUDA_PREFIX}/bin/nvcc)
 set (CMAKE_HIP_COMPILER ${ROCM_PREFIX}/bin/hipcc)
-# TODO: CMAKE_CXX_COMPILER and CMAKE_C_COMPILER ?
 
 # 	b) Compile flags
 set (CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -w -O3")
@@ -73,8 +70,6 @@ if (${BACKEND} STREQUAL "CuCuBLAS")
 
 elseif(${BACKEND} STREQUAL "HIP")
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_NVIDIA__ -D__HIP_PLATFORM_NVCC__") # for NVIDIA platform (can be changed to __HIP_PLATFORM_AMD__)
-	# set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_AMD__") # for NVIDIA platform (can be changed to __HIP_PLATFORM_AMD__)
-
 
 	set (HIP_INCLUDE_DIRS ${ROCM_PREFIX}/include )
 	include_directories(${HIP_INCLUDE_DIRS})
@@ -178,41 +173,61 @@ file(MAKE_DIRECTORY ${UNIHELP_INSTALL_INC})
 #FIXME: Current CoCoPeLia version only work with lazy events.
 add_definitions(-DENABLE_LAZY_EVENTS)
 
+#TODO: Remove this set
+set(BUILD_BLAS_WRAPPERS_FLAG 1)
 if (${BACKEND} STREQUAL "CuCuBLAS")
-	add_library(unihelpers SHARED
-	${UNIHELP_DIR_SRC}/general_utils.cpp
-	${UNIHELP_DIR_SRC}/data_management.cpp
-	${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
-	${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
-	${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
-	${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cu
-	${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cu
-	)
+	if(${BUILD_BLAS_WRAPPERS_FLAG} EQUAL 1)
+		add_library(unihelpers SHARED
+		${UNIHELP_DIR_SRC}/general_utils.cpp
+		${UNIHELP_DIR_SRC}/data_management.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cu
+		)
+	else()
+		add_library(unihelpers SHARED
+		${UNIHELP_DIR_SRC}/general_utils.cpp
+		${UNIHELP_DIR_SRC}/data_management.cpp    
+		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
+		)
+	endif()
+
 	target_link_libraries(unihelpers ${CUDA_INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
-	
-	configure_file(${UNIHELP_DIR_INC}/unihelpers.hpp ${UNIHELP_INSTALL_INC}/unihelpers.hpp COPYONLY)
-	## FIXME: This is a temporary cheat for deployment, must be removed at some point (?). It has to do with TransposeTranslate.
-	configure_file(${BACKEND_UNIHELP_DIR_SRC}/backend_wrappers.hpp ${UNIHELP_INSTALL_INC}/backend_wrappers.hpp COPYONLY)
 
 elseif(${BACKEND} STREQUAL "HIP")
-	add_library(unihelpers SHARED
-	${UNIHELP_DIR_SRC}/general_utils.cpp
-	${UNIHELP_DIR_SRC}/data_management.cpp
-	${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cpp
-	${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cpp
-	${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cpp
-	${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cpp
-	${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cpp
-	)
-	target_link_libraries(unihelpers ${HIP_INTERNAL_LINK_LIB} ${OPENBLAS_LINK} ${CUDA_INTERNAL_LINK_LIB} ${HIPBLAS_LINK} ${HIPRAND_LINK})
+	if(${BUILD_BLAS_WRAPPERS_FLAG} EQUAL 1)
+		add_library(unihelpers SHARED
+		${UNIHELP_DIR_SRC}/general_utils.cpp
+		${UNIHELP_DIR_SRC}/data_management.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cpp
+		)
+	else()
+		add_library(unihelpers SHARED
+		${UNIHELP_DIR_SRC}/general_utils.cpp
+		${UNIHELP_DIR_SRC}/data_management.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cpp
+		)
+	endif()
 
-	configure_file(${UNIHELP_DIR_INC}/unihelpers.hpp ${UNIHELP_INSTALL_INC}/unihelpers.hpp COPYONLY)
-	## FIXME: This is a temporary cheat for deployment, must be removed at some point (?). It has to do with TransposeTranslate.
-	configure_file(${BACKEND_UNIHELP_DIR_SRC}/backend_wrappers.hpp ${UNIHELP_INSTALL_INC}/backend_wrappers.hpp COPYONLY)
+	target_link_libraries(unihelpers ${HIP_INTERNAL_LINK_LIB} ${OPENBLAS_LINK} ${CUDA_INTERNAL_LINK_LIB} ${HIPBLAS_LINK} ${HIPRAND_LINK})
 
 else()
 	message(FATAL_ERROR "Universal Helpers - BACKEND flag error: BACKEND=" ${BACKEND} )
 endif()
+
+configure_file(${UNIHELP_DIR_INC}/unihelpers.hpp ${UNIHELP_INSTALL_INC}/unihelpers.hpp COPYONLY)
+## FIXME: This is a temporary cheat for deployment, must be removed at some point (?). It has to do with TransposeTranslate.
+configure_file(${BACKEND_UNIHELP_DIR_SRC}/backend_wrappers.hpp ${UNIHELP_INSTALL_INC}/backend_wrappers.hpp COPYONLY)
 
 
 set (UNIHELP_INSTALL_INC ${UNIHELP_INSTALL_INC} PARENT_SCOPE)
