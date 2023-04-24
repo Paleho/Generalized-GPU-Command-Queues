@@ -141,19 +141,19 @@ int main(int argc, char ** argv){
 	double *d0_M21A11B12 = (double *) CoCoMalloc(quarter_size, 0);
 
 	Event_p transfer_A11_d0 = new Event(0);
-	gemm_backend_in_p gemmData_p_1_A11B11 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_1_A11B11 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	Event_p compute_A11B11_d0 = new Event(0);
 
-	gemm_backend_in_p gemmData_p_1_A11B12 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_1_A11B12 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	Event_p compute_A11B12_d0 = new Event(0);
 	Event_p transfer_M11_d0 = new Event(0);
 
-	gemm_backend_in_p gemmData_p_1_M11A11B11 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_1_M11A11B11 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	Event_p transfer_M21_d0 = new Event(0);
 
-	gemm_backend_in_p gemmData_p_1_M21A11B11 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
-	gemm_backend_in_p gemmData_p_1_M11A11B12 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
-	gemm_backend_in_p gemmData_p_1_M21A11B12 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_1_M21A11B11 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
+	gemm_backend_in<double>* gemmData_p_1_M11A11B12 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
+	gemm_backend_in<double>* gemmData_p_1_M21A11B12 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	{
 		for(int i = 0; i < 6; i++){
 			Q1[i] = new CommandQueue(0);
@@ -184,7 +184,7 @@ int main(int argc, char ** argv){
 		gemmData_p_1_A11B11->dev_id = 0;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_1_A11B11, "gemm", Q1[0]);
+		backend_run_operation(gemmData_p_1_A11B11, "Dgemm", Q1[0]);
 		// gemm stores result matrix in C = d0_A11B11
 
 		// Enqueue event
@@ -211,7 +211,7 @@ int main(int argc, char ** argv){
 		gemmData_p_1_A11B12->dev_id = 0;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_1_A11B12, "gemm", Q1[1]);
+		backend_run_operation(gemmData_p_1_A11B12, "Dgemm", Q1[1]);
 		// gemm stores result matrix in C = d0_A11B12
 
 		// Enqueue event
@@ -241,7 +241,7 @@ int main(int argc, char ** argv){
 		gemmData_p_1_M11A11B11->dev_id = 0;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_1_M11A11B11, "gemm", Q1[2]);
+		backend_run_operation(gemmData_p_1_M11A11B11, "Dgemm", Q1[2]);
 		// gemm stores result matrix in C = d0_M11A11B11
 
 		// Copy back result M11A11B11
@@ -271,7 +271,7 @@ int main(int argc, char ** argv){
 		gemmData_p_1_M21A11B11->dev_id = 0;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_1_M21A11B11, "gemm", Q1[3]);
+		backend_run_operation(gemmData_p_1_M21A11B11, "Dgemm", Q1[3]);
 		// gemm stores result matrix in C = d0_M21A11B11
 
 		// Copy back result M21A11B11
@@ -297,7 +297,7 @@ int main(int argc, char ** argv){
 		gemmData_p_1_M11A11B12->dev_id = 0;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_1_M11A11B12, "gemm", Q1[4]);
+		backend_run_operation(gemmData_p_1_M11A11B12, "Dgemm", Q1[4]);
 		// gemm stores result matrix in C = d0_M11A11B12
 
 		// Copy back result M11A11B12
@@ -323,7 +323,7 @@ int main(int argc, char ** argv){
 		gemmData_p_1_M21A11B12->dev_id = 0;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_1_M21A11B12, "gemm", Q1[5]);
+		backend_run_operation(gemmData_p_1_M21A11B12, "Dgemm", Q1[5]);
 		// gemm stores result matrix in C = d0_M21A11B12
 
 		// Copy back result M21A11B12
@@ -345,21 +345,21 @@ int main(int argc, char ** argv){
 	double *d1_M21A12B22 = (double *) CoCoMalloc(quarter_size, 1);
 
 	Event_p transfer_A12_d1 = new Event(1);
-	gemm_backend_in_p gemmData_p_2_A12B21 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_2_A12B21 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 
 	Event_p compute_A12B21_d1 = new Event(1);
 	Event_p transfer_B22_d1 = new Event(1);
 
-	gemm_backend_in_p gemmData_p_2_A12B22 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_2_A12B22 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	Event_p compute_A12B22_d1 = new Event(1);
 	Event_p transfer_M11_d1 = new Event(1);
 
-	gemm_backend_in_p gemmData_p_2_M11A12B21 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_2_M11A12B21 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	Event_p transfer_M21_d1 = new Event(1);
-	gemm_backend_in_p gemmData_p_2_M21A12B21 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_2_M21A12B21 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 
-	gemm_backend_in_p gemmData_p_2_M11A12B22 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
-	gemm_backend_in_p gemmData_p_2_M21A12B22 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_2_M11A12B22 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
+	gemm_backend_in<double>* gemmData_p_2_M21A12B22 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	{
 		for(int i = 0; i < 6; i++){
 			Q2[i] = new CommandQueue(1);
@@ -389,7 +389,7 @@ int main(int argc, char ** argv){
 		gemmData_p_2_A12B21->dev_id = 1;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_2_A12B21, "gemm", Q2[0]);
+		backend_run_operation(gemmData_p_2_A12B21, "Dgemm", Q2[0]);
 		// gemm stores result matrix in C = d1_A12B21
 
 		// Enqueue event
@@ -419,7 +419,7 @@ int main(int argc, char ** argv){
 		gemmData_p_2_A12B22->dev_id = 1;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_2_A12B22, "gemm", Q2[1]);
+		backend_run_operation(gemmData_p_2_A12B22, "Dgemm", Q2[1]);
 		// gemm stores result matrix in C = d1_A12B22
 
 		// Enqueue event
@@ -448,7 +448,7 @@ int main(int argc, char ** argv){
 		gemmData_p_2_M11A12B21->dev_id = 1;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_2_M11A12B21, "gemm", Q2[2]);
+		backend_run_operation(gemmData_p_2_M11A12B21, "Dgemm", Q2[2]);
 		// gemm stores result matrix in C = d1_M11A12B21
 
 		// Copy back result M11A12B21
@@ -477,7 +477,7 @@ int main(int argc, char ** argv){
 		gemmData_p_2_M21A12B21->dev_id = 1;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_2_M21A12B21, "gemm", Q2[3]);
+		backend_run_operation(gemmData_p_2_M21A12B21, "Dgemm", Q2[3]);
 		// gemm stores result matrix in C = d1_M21A12B21
 
 		// Copy back result M21A12B21
@@ -503,7 +503,7 @@ int main(int argc, char ** argv){
 		gemmData_p_2_M11A12B22->dev_id = 1;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_2_M11A12B22, "gemm", Q2[4]);
+		backend_run_operation(gemmData_p_2_M11A12B22, "Dgemm", Q2[4]);
 		// gemm stores result matrix in C = d1_M11A12B22
 
 		// Copy back result M11A12B22
@@ -529,7 +529,7 @@ int main(int argc, char ** argv){
 		gemmData_p_2_M21A12B22->dev_id = 1;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_2_M21A12B22, "gemm", Q2[5]);
+		backend_run_operation(gemmData_p_2_M21A12B22, "Dgemm", Q2[5]);
 		// gemm stores result matrix in C = d1_M21A12B22
 
 		// Copy back result M21A12B22
@@ -551,20 +551,20 @@ int main(int argc, char ** argv){
 	double *d2_M22A21B12 = (double *) CoCoMalloc(quarter_size, 2);
 
 	Event_p transfer_A21_d2 = new Event(2);
-	gemm_backend_in_p gemmData_p_3_A21B11 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_3_A21B11 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 
 	Event_p compute_A21B11_d2 = new Event(2);
-	gemm_backend_in_p gemmData_p_3_A21B12 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_3_A21B12 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 
 	Event_p compute_A21B12_d2 = new Event(2);
 	Event_p transfer_M12_d2 = new Event(2);
 
-	gemm_backend_in_p gemmData_p_3_M12A21B11 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_3_M12A21B11 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	Event_p transfer_M22_d2 = new Event(2);
 
-	gemm_backend_in_p gemmData_p_3_M22A21B11 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
-	gemm_backend_in_p gemmData_p_3_M12A21B12 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
-	gemm_backend_in_p gemmData_p_3_M22A21B12 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_3_M22A21B11 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
+	gemm_backend_in<double>* gemmData_p_3_M12A21B12 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
+	gemm_backend_in<double>* gemmData_p_3_M22A21B12 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	{
 		for(int i = 0; i < 6; i++){
 			Q3[i] = new CommandQueue(2);
@@ -595,7 +595,7 @@ int main(int argc, char ** argv){
 		gemmData_p_3_A21B11->dev_id = 2;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_3_A21B11, "gemm", Q3[0]);
+		backend_run_operation(gemmData_p_3_A21B11, "Dgemm", Q3[0]);
 		// gemm stores result matrix in C = d2_A21B11
 
 		// Enqueue event
@@ -622,7 +622,7 @@ int main(int argc, char ** argv){
 		gemmData_p_3_A21B12->dev_id = 2;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_3_A21B12, "gemm", Q3[1]);
+		backend_run_operation(gemmData_p_3_A21B12, "Dgemm", Q3[1]);
 		// gemm stores result matrix in C = d2_A21B12
 
 		// Enqueue event
@@ -652,7 +652,7 @@ int main(int argc, char ** argv){
 		gemmData_p_3_M12A21B11->dev_id = 2;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_3_M12A21B11, "gemm", Q3[2]);
+		backend_run_operation(gemmData_p_3_M12A21B11, "Dgemm", Q3[2]);
 		// gemm stores result matrix in C = d2_M12A21B11
 
 		// Copy back result M12A21B11
@@ -682,7 +682,7 @@ int main(int argc, char ** argv){
 		gemmData_p_3_M22A21B11->dev_id = 2;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_3_M22A21B11, "gemm", Q3[3]);
+		backend_run_operation(gemmData_p_3_M22A21B11, "Dgemm", Q3[3]);
 		// gemm stores result matrix in C = d2_M22A21B11
 
 		// Copy back result M22A21B11
@@ -708,7 +708,7 @@ int main(int argc, char ** argv){
 		gemmData_p_3_M12A21B12->dev_id = 2;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_3_M12A21B12, "gemm", Q3[4]);
+		backend_run_operation(gemmData_p_3_M12A21B12, "Dgemm", Q3[4]);
 		// gemm stores result matrix in C = d2_M12A21B12
 
 		// Copy back result M12A21B12
@@ -734,7 +734,7 @@ int main(int argc, char ** argv){
 		gemmData_p_3_M22A21B12->dev_id = 2;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_3_M22A21B12, "gemm", Q3[5]);
+		backend_run_operation(gemmData_p_3_M22A21B12, "Dgemm", Q3[5]);
 		// gemm stores result matrix in C = d2_M22A21B12
 
 		// Copy back result M22A21B12
@@ -743,16 +743,16 @@ int main(int argc, char ** argv){
 	// std::cout << "DEBUG: Device 2 code complete\n";
 
 	/* Device -1: CPU*/
-	gemm_backend_in_p gemmData_p_4_A22B21 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_4_A22B21 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	Event_p compute_A22B21_host = new Event(-1);
-	gemm_backend_in_p gemmData_p_4_A22B22 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_4_A22B22 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	Event_p compute_A22B22_host = new Event(-1);
-	gemm_backend_in_p gemmData_p_4_M12A22B21 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_4_M12A22B21 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	Event_p compute_M12A22B21_host = new Event(-1);
-	gemm_backend_in_p gemmData_p_4_M22A22B21 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_4_M22A22B21 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	Event_p compute_M22A22B21_host = new Event(-1);
-	gemm_backend_in_p gemmData_p_4_M12A22B22 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
-	gemm_backend_in_p gemmData_p_4_M22A22B22 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_4_M12A22B22 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
+	gemm_backend_in<double>* gemmData_p_4_M22A22B22 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 
 	double *host_A22 = (double *) CoCoMalloc(quarter_size, -2);
 	double *host_B21 = (double *) CoCoMalloc(quarter_size, -2);
@@ -790,7 +790,7 @@ int main(int argc, char ** argv){
 		gemmData_p_4_A22B21->dev_id = -1;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_4_A22B21, "gemm", Qhost[0]);
+		backend_run_operation(gemmData_p_4_A22B21, "Dgemm", Qhost[0]);
 		// gemm stores result matrix in C = host_A22B21
 
 		// Enqueue event
@@ -817,7 +817,7 @@ int main(int argc, char ** argv){
 		gemmData_p_4_A22B22->dev_id = -1;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_4_A22B22, "gemm", Qhost[1]);
+		backend_run_operation(gemmData_p_4_A22B22, "Dgemm", Qhost[1]);
 		// gemm stores result matrix in C = host_A22B21
 
 		// Enqueue event
@@ -845,7 +845,7 @@ int main(int argc, char ** argv){
 		gemmData_p_4_M12A22B21->dev_id = -1;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_4_M12A22B21, "gemm", Qhost[2]);
+		backend_run_operation(gemmData_p_4_M12A22B21, "Dgemm", Qhost[2]);
 		// gemm stores result matrix in C = host_M12A22B21
 
 		// Enqueue event
@@ -873,7 +873,7 @@ int main(int argc, char ** argv){
 		gemmData_p_4_M22A22B21->dev_id = -1;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_4_M22A22B21, "gemm", Qhost[3]);
+		backend_run_operation(gemmData_p_4_M22A22B21, "Dgemm", Qhost[3]);
 		// gemm stores result matrix in C = host_M22A22B21
 
 		// Enqueue event
@@ -899,7 +899,7 @@ int main(int argc, char ** argv){
 		gemmData_p_4_M12A22B22->dev_id = -1;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_4_M12A22B22, "gemm", Qhost[4]);
+		backend_run_operation(gemmData_p_4_M12A22B22, "Dgemm", Qhost[4]);
 		// gemm stores result matrix in C = host_M12A22B22
 
 		// Qhost[5]
@@ -922,7 +922,7 @@ int main(int argc, char ** argv){
 		gemmData_p_4_M22A22B22->dev_id = -1;
 
 		// Run blas operation
-		backend_run_operation(gemmData_p_4_M22A22B22, "gemm", Qhost[5]);
+		backend_run_operation(gemmData_p_4_M22A22B22, "Dgemm", Qhost[5]);
 		// gemm stores result matrix in C = host_M22A22B22
 	}
 	// std::cout << "DEBUG: Host code complete\n";
