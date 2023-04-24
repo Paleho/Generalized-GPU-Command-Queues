@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.10)
 
-## Define a name for the backend library wrappers/implementations used in this build, Currently implemented only with CuCuBLAS(==CUDA+CUBLAS)
+## Define a name for the backend library wrappers/implementations used in this build, Currently implemented with CuCuBLAS(==CUDA+CUBLAS) and HIP
 # set(BACKEND "CuCuBLAS")
 message("Universal Helpers - BACKEND: " ${BACKEND})
 add_definitions(-DBACKEND="${BACKEND}")
@@ -141,7 +141,7 @@ if (${BACKEND} STREQUAL "HIP")
   set (UNIHELP_DIR_SRC ${UNIHELP_DIR}/HIP/src)
   message( "Universal Helpers - Source DIR: " ${UNIHELP_DIR_SRC} )
 
-  set (BACKEND_UNIHELP_DIR_SRC ${UNIHELP_DIR}/HIP/CuCuBLAS)
+  set (BACKEND_UNIHELP_DIR_SRC ${UNIHELP_DIR}/HIP/hip_backend)
   message( "Universal Helpers - BACKEND DIR: " ${BACKEND_UNIHELP_DIR_SRC} )
   include_directories(${BACKEND_UNIHELP_DIR_SRC})
 
