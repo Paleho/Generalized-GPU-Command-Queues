@@ -5,6 +5,7 @@
 ///			  (HIPified version of original CUDA code)
 ///
 
+#include <hipblas.h>
 #include <pthread.h>
 #include <cblas.h>
 
@@ -40,42 +41,113 @@ void backend_free(short dev_id){
   return;
 }
 
-
 void backend_run_operation(void* backend_data, const char* opname, CQueue_p run_queue){
   short lvl = 5;
-  if (!strcmp(opname, "gemm")){
-    gemm_backend_in_p ptr_ker_translate = (gemm_backend_in_p) backend_data;
-    if (std::is_same<VALUE_TYPE, double>::value){
-    //if (sizeof(VALUE_TYPE) == sizeof(double)){
-      if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_dgemm, backend_data);
-      else if(ptr_ker_translate->dev_id >= 0) cublas_wrap_dgemm(backend_data, run_queue);
-      else error("backend_run_operation(gemm,double): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
-    }
-    else if (std::is_same<VALUE_TYPE, float>::value){
-    //else if (sizeof(VALUE_TYPE) == sizeof(float)){
-      if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_sgemm, backend_data);
-      else if(ptr_ker_translate->dev_id >= 0) cublas_wrap_sgemm(backend_data, run_queue);
-      else error("backend_run_operation(gemm,float): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
-    }
-    else error("backend_run_operation(gemm): Not implemented for VALUETYPE\n");
+  if (!strcmp(opname, "Dgemm")){
+    gemm_backend_in<double>* ptr_ker_translate = (gemm_backend_in<double>*) backend_data;
+    if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_dgemm, backend_data);
+    else if(ptr_ker_translate->dev_id >= 0) cublas_wrap_dgemm(backend_data, run_queue);
+    else error("backend_run_operation(dgemm): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
   }
-  else if(!strcmp(opname, "axpy")){
-    axpy_backend_in_p ptr_ker_translate = (axpy_backend_in_p) backend_data;
-    if (std::is_same<VALUE_TYPE, double>::value){
-    //if (sizeof(VALUE_TYPE) == sizeof(double)){
-      if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_daxpy, backend_data);
-      else if(ptr_ker_translate->dev_id >= 0) cublas_wrap_daxpy(backend_data, run_queue);
-      else error("backend_run_operation(axpy,double): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
-    }
-    else if (std::is_same<VALUE_TYPE, float>::value){
-    //else if (sizeof(VALUE_TYPE) == sizeof(float)){
-      if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_saxpy, backend_data);
-      else if(ptr_ker_translate->dev_id >= 0) cublas_wrap_saxpy(backend_data, run_queue);
-      else error("backend_run_operation(axpy,float): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
-    }
-    else error("backend_run_operation(axpy): Not implemented for VALUETYPE\n");
+  else if (!strcmp(opname, "Dgemv")){
+  gemv_backend_in<double>* ptr_ker_translate = (gemv_backend_in<double>*) backend_data;
+  if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_dgemv, backend_data);
+  else if(ptr_ker_translate->dev_id >= 0) cublas_wrap_dgemv(backend_data, run_queue);
+  else error("backend_run_operation(dgemv): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
+  }
+  else if(!strcmp(opname, "Sgemm")){
+    gemm_backend_in<float>* ptr_ker_translate = (gemm_backend_in<float>*) backend_data;
+    if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_sgemm, backend_data);
+    else if(ptr_ker_translate->dev_id >= 0) cublas_wrap_sgemm(backend_data, run_queue);
+    else error("backend_run_operation(sgemm): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
+  }
+  else if(!strcmp(opname, "Daxpy")){
+    axpy_backend_in<double>* ptr_ker_translate = (axpy_backend_in<double>*) backend_data;
+    if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_daxpy, backend_data);
+    else if(ptr_ker_translate->dev_id >= 0) cublas_wrap_daxpy(backend_data, run_queue);
+    else error("backend_run_operation(axpy,double): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
+  }
+  else if(!strcmp(opname, "Saxpy")){
+      axpy_backend_in<float>* ptr_ker_translate = (axpy_backend_in<float>*) backend_data;
+      //if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_saxpy, backend_data);
+      //else if(ptr_ker_translate->dev_id >= 0) cublas_wrap_saxpy(backend_data, run_queue);
+      //else
+      error("backend_run_operation(axpy,float): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
+  }
+  else if(!strcmp(opname, "Ddot")){
+    dot_backend_in<double>* ptr_ker_translate = (dot_backend_in<double>*) backend_data;
+    if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_ddot, backend_data);
+    else if(ptr_ker_translate->dev_id >= 0) cublas_wrap_ddot(backend_data, run_queue);
+    else error("backend_run_operation(ddot): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
+  }
+  else if(!strcmp(opname, "Sdot")){
+    dot_backend_in<float>* ptr_ker_translate = (dot_backend_in<float>*) backend_data;
+    //if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_sdot, backend_data);
+    //else if(ptr_ker_translate->dev_id >= 0) cublas_wrap_sdot(backend_data, run_queue);
+    //else
+    error("backend_run_operation(sdot): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
   }
   else error("backend_run_operation: unkown/not implemented opname=%s\n", opname);
+}
+
+void TransposeTranslate(char TransChar, CBLAS_TRANSPOSE* cblasFlag, hipblasOperation_t* cuBLASFlag, long int* ldim, long int dim1, long int dim2){
+	if (TransChar == 'N'){
+ 		*cblasFlag = CblasNoTrans;
+ 		*cuBLASFlag = HIPBLAS_OP_N;
+		*ldim = dim1;
+	}
+	else if (TransChar == 'T'){
+ 		*cblasFlag = CblasTrans;
+ 		*cuBLASFlag = HIPBLAS_OP_T;
+		*ldim = dim2;
+	}
+	else if (TransChar == 'C'){
+ 		*cblasFlag = CblasConjTrans;
+ 		*cuBLASFlag = HIPBLAS_OP_C;
+		*ldim = dim2;
+	}
+	else error("TransposeTranslate: %c is an invalid Trans flag", TransChar);
+}
+
+hipblasOperation_t OpCblasToCublas(CBLAS_TRANSPOSE src)
+{
+	if(src == CblasNoTrans) return HIPBLAS_OP_N;
+	else if(src == CblasTrans) return HIPBLAS_OP_T;
+	else if(src == CblasConjTrans) return HIPBLAS_OP_C;
+	else error("OpCblasToCublas: Invalid Op\n");
+}
+
+hipblasOperation_t OpCharToCublas(char src)
+{
+	if(src == 'N') return HIPBLAS_OP_N;
+	else if(src == 'T') return HIPBLAS_OP_T;
+	else if(src == 'C') return HIPBLAS_OP_C;
+	else error("OpCharToCublas: Invalid Op: %c\n", src);
+}
+
+CBLAS_TRANSPOSE OpCharToCblas(char src)
+{
+	if(src == 'N') return CblasNoTrans;
+	else if(src == 'T') return CblasTrans;
+	else if(src == 'C') return CblasConjTrans;
+	else error("OpCharToCblas: Invalid Op: %c\n", src);
+}
+
+CBLAS_TRANSPOSE OpCublasToCblas(hipblasOperation_t src)
+{
+	if(src == HIPBLAS_OP_N) return CblasNoTrans;
+	else if(src == HIPBLAS_OP_T) return CblasTrans;
+	else if(src == HIPBLAS_OP_C) return CblasConjTrans;
+	else error("OpCublasToCblas: Invalid Op\n");
+}
+
+char PrintCublasOp(hipblasOperation_t src)
+{
+
+	if(src == HIPBLAS_OP_N) return 'N';
+	else if(src == HIPBLAS_OP_T) return 'T';
+	else if(src == HIPBLAS_OP_C) return 'C';
+	else error("PrintCublasOp: Invalid Op\n");
 }
 
 #ifdef MULTIDEVICE_REDUCTION_ENABLE
@@ -94,7 +166,7 @@ void CoCoAdd2D(VALUETYPE* dest, long int ldest, VALUETYPE* src, long int lsrc,
 
   // Stable implementation with sync
   if(loc == -1){
-    axpy_backend_in_p backend_axpy_wrapper = (axpy_backend_in_p) malloc(sizeof(struct axpy_backend_in));
+    axpy_backend_in<double>* backend_axpy_wrapper = (axpy_backend_in<double>*) malloc(sizeof(struct axpy_backend_in));
     backend_axpy_wrapper->N = rows;
     backend_axpy_wrapper->incx = backend_axpy_wrapper->incy = 1;
     backend_axpy_wrapper->alpha = 1.0;
@@ -112,7 +184,7 @@ void CoCoAdd2D(VALUETYPE* dest, long int ldest, VALUETYPE* src, long int lsrc,
   // Better implementation without sync - not working in CPU reduction?
   else{
     for(int colidx = 0; colidx < cols; colidx++){
-      axpy_backend_in_p backend_axpy_wrapper = (axpy_backend_in_p) malloc(sizeof(struct axpy_backend_in));
+      axpy_backend_in<double>* backend_axpy_wrapper = (axpy_backend_in<double>*) malloc(sizeof(struct axpy_backend_in));
       backend_axpy_wrapper->N = rows;
       backend_axpy_wrapper->incx = backend_axpy_wrapper->incy = 1;
       backend_axpy_wrapper->alpha = 1.0;

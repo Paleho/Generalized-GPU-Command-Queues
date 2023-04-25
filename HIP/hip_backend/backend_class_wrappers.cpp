@@ -71,7 +71,28 @@ CommandQueue::CommandQueue(int dev_id_in)
 			dev_id, prev_dev_id);
 #endif
 	}
-	
+#ifdef ENABLE_PARALLEL_BACKEND
+#ifdef UDEBUG
+		lprintf(lvl, "[dev_id=%3d] ------- CommandQueue::CommandQueue(): Initializing parallel queue with %d Backend workers\n",
+		dev_id, MAX_BACKEND_L);
+#endif
+	backend_ctr = 0;
+	for (int par_idx = 0; par_idx < MAX_BACKEND_L; par_idx++ ){
+		cqueue_backend_ptr[par_idx] = malloc(sizeof(hipStream_t));
+		hipError_t err = hipStreamCreate((hipStream_t*) cqueue_backend_ptr[par_idx]);
+		massert(hipSuccess == err, "CommandQueue::CommandQueue(%d) - %s\n", dev_id, hipGetErrorString(err));
+		hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr[par_idx]);
+
+		cqueue_backend_data[par_idx] = malloc(sizeof(hipblasHandle_t));
+		massert(HIPBLAS_STATUS_SUCCESS == hipblasCreate((hipblasHandle_t*) cqueue_backend_data[par_idx]),
+			"CommandQueue::CommandQueue(%d): hipblasCreate failed\n", dev_id);
+		massert(HIPBLAS_STATUS_SUCCESS == hipblasSetStream(*((hipblasHandle_t*) cqueue_backend_data[par_idx]), stream),
+			"CommandQueue::CommandQueue(%d): hipblasSetStream failed\n", dev_id);
+		//warning("FIXME: Running on limited SMs, custom stuff, beware this in not a drill\n");
+		//massert(HIPBLAS_STATUS_SUCCESS == cublasSetSmCountTarget(*((hipblasHandle_t*) cqueue_backend_data[par_idx]), 1),
+		//	"CommandQueue::CommandQueue(%d): cublasSetSmCountTarget failed\n", dev_id);
+	}
+#else
 #ifdef UDEBUG
 		lprintf(lvl, "[dev_id=%3d] ------- CommandQueue::CommandQueue(%d): Initializing simple queue\n", dev_id);
 #endif
@@ -85,7 +106,7 @@ CommandQueue::CommandQueue(int dev_id_in)
 		"CommandQueue::CommandQueue(%d): hipblasCreate failed\n", dev_id);
 	massert(HIPBLAS_STATUS_SUCCESS == hipblasSetStream(*((hipblasHandle_t*) cqueue_backend_data), stream),
 		"CommandQueue::CommandQueue(%d): hipblasSetStream failed\n", dev_id);
-
+#endif
 	CoCoPeLiaSelectDevice(prev_dev_id);
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::CommandQueue()\n", dev_id);
@@ -94,12 +115,24 @@ CommandQueue::CommandQueue(int dev_id_in)
 
 CommandQueue::~CommandQueue()
 {
-#ifdef UDDEBUG
-	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::~CommandQueue()\n", dev_id);
-#endif
-	sync_barrier();
-	CoCoPeLiaSelectDevice(dev_id);
-
+	#ifdef UDDEBUG
+		lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::~CommandQueue()\n", dev_id);
+	#endif
+		sync_barrier();
+		CoCoPeLiaSelectDevice(dev_id);
+#ifdef ENABLE_PARALLEL_BACKEND
+	for (int par_idx = 0; par_idx < MAX_BACKEND_L; par_idx++ ){
+		hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr[par_idx]);
+		hipError_t err = hipStreamSynchronize(stream);
+		massert(hipSuccess == err, "CommandQueue::CommandQueue - hipStreamSynchronize: %s\n", hipGetErrorString(err));
+		err = hipStreamDestroy(stream);
+		massert(hipSuccess == err, "CommandQueue::CommandQueue - hipStreamDestroy: %s\n", hipGetErrorString(err));
+		free(cqueue_backend_ptr[par_idx]);
+		hipblasHandle_t handle = *((hipblasHandle_t*) cqueue_backend_data[par_idx]);
+		massert(HIPBLAS_STATUS_SUCCESS == hipblasDestroy(handle),
+			"CommandQueue::CommandQueue - hipblasDestroy(handle) failed\n");
+	}
+#else
 	hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr);
 	hipError_t err = hipStreamSynchronize(stream);
 	massert(hipSuccess == err, "CommandQueue::CommandQueue - hipStreamSynchronize: %s\n", hipGetErrorString(err));
@@ -109,7 +142,7 @@ CommandQueue::~CommandQueue()
 	hipblasHandle_t handle = *((hipblasHandle_t*) cqueue_backend_data);
 	massert(HIPBLAS_STATUS_SUCCESS == hipblasDestroy(handle),
 		"CommandQueue::CommandQueue - hipblasDestroy(handle) failed\n");
-
+#endif
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::~CommandQueue()\n", dev_id);
 #endif
@@ -121,11 +154,17 @@ void CommandQueue::sync_barrier()
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::sync_barrier()\n", dev_id);
 #endif
-
+#ifdef ENABLE_PARALLEL_BACKEND
+	for (int par_idx = 0; par_idx < MAX_BACKEND_L; par_idx++ ){
+		hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr[par_idx]);
+		hipError_t err = hipStreamSynchronize(stream);
+		massert(hipSuccess == err, "CommandQueue::sync_barrier - %s\n", hipGetErrorString(err));
+	}
+#else
 	hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr);
 	hipError_t err = hipStreamSynchronize(stream);
 	massert(hipSuccess == err, "CommandQueue::sync_barrier - %s\n", hipGetErrorString(err));
-
+#endif
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::sync_barrier()\n", dev_id);
 #endif
@@ -136,13 +175,16 @@ void CommandQueue::add_host_func(void* func, void* data){
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::add_host_func()\n", dev_id);
 #endif
-
+#ifdef ENABLE_PARALLEL_BACKEND
+	hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr[backend_ctr]);
+	hipError_t err = hipLaunchHostFunc(stream, (hipHostFn_t) func, data);
+	massert(hipSuccess == err, "CommandQueue::add_host_func - %s\n", hipGetErrorString(err));
+#else
 	hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr);
 	hipError_t err = hipLaunchHostFunc(stream, (hipHostFn_t) func, data);
 	massert(hipSuccess == err, "CommandQueue::add_host_func - %s\n", hipGetErrorString(err));
-
+#endif
 	release_lock();
-
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::add_host_func()\n", dev_id);
 #endif
@@ -156,11 +198,16 @@ void CommandQueue::wait_for_event(Event_p Wevent)
 	if (Wevent->query_status() == CHECKED);
 	else{
 		// TODO: New addition (?)
-		if (Wevent->query_status() == UNRECORDED) error("CommandQueue::wait_for_event:: UNRECORDED event\n");
+		if (Wevent->query_status() == UNRECORDED) {
+			warning("CommandQueue::wait_for_event():: UNRECORDED event\n");
+			return;
+		}
 		get_lock();
-
+#ifdef ENABLE_PARALLEL_BACKEND
+		hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr[backend_ctr]);
+#else
 		hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr);
-
+#endif
 		hipEvent_t cuda_event= *(hipEvent_t*) Wevent->event_backend_ptr;
 		release_lock();
 		hipError_t err = hipStreamWaitEvent(stream, cuda_event, 0); // 0-only parameter = future NVIDIA masterplan?
@@ -172,6 +219,38 @@ void CommandQueue::wait_for_event(Event_p Wevent)
 	return;
 }
 
+#ifdef ENABLE_PARALLEL_BACKEND
+int CommandQueue::request_parallel_backend()
+{
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::request_parallel_backend()\n", dev_id);
+#endif
+	get_lock();
+	if (backend_ctr == MAX_BACKEND_L - 1) backend_ctr = 0;
+	else backend_ctr++;
+	int tmp_backend_ctr = backend_ctr;
+	release_lock();
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::request_parallel_backend() = %d\n", dev_id, tmp_backend_ctr);
+#endif
+	return tmp_backend_ctr;
+}
+
+void CommandQueue::set_parallel_backend(int backend_ctr_in)
+{
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::set_parallel_backend(%d)\n", dev_id, backend_ctr_in);
+#endif
+	get_lock();
+	backend_ctr = backend_ctr_in;
+	release_lock();
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::set_parallel_backend(%d)\n", dev_id, backend_ctr);
+#endif
+	return;
+}
+
+#endif
 
 /*****************************************************/
 /// Event class functions. TODO: Do status = .. commands need lock?
@@ -296,10 +375,13 @@ void Event::record_to_queue(CQueue_p Rr){
 	}
 #endif
 	hipEvent_t cuda_event= *(hipEvent_t*) event_backend_ptr;
-
+#ifdef ENABLE_PARALLEL_BACKEND
+	hipStream_t stream = *((hipStream_t*) Rr->cqueue_backend_ptr[Rr->backend_ctr]);
+	hipError_t err = hipEventRecord(cuda_event, stream);
+#else
 	hipStream_t stream = *((hipStream_t*) Rr->cqueue_backend_ptr);
 	hipError_t err = hipEventRecord(cuda_event, stream);
-
+#endif
 	status = RECORDED;
 	massert(hipSuccess == err, "Event(%d,dev_id = %d)::record_to_queue(%d) - %s\n",  id, dev_id, Rr->dev_id, hipGetErrorString(err));
 	if (Rr->dev_id != prev_dev_id){
@@ -372,10 +454,16 @@ void Event::soft_reset(){
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::soft_reset()\n", dev_id, id);
 #endif
-	//sync_barrier();
+	// sync_barrier();
 	get_lock();
-	//event_status prev_status = status;
+	// event_status prev_status = status;
 	status = UNRECORDED;
+#ifdef ENABLE_LAZY_EVENTS
+	if(dev_id >= -1){
+		dev_id = dev_id - 42;
+		event_backend_ptr = malloc(sizeof(hipEvent_t));
+	}
+#endif
 	release_lock();
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| Event(%d)::soft_reset()\n", dev_id, id);
