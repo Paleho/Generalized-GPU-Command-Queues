@@ -1,13 +1,6 @@
 cmake_minimum_required (VERSION 3.10)
 
 # 	d) Link Libraries
-set (HIP_LD ${ROCM_PREFIX}/hip/lib) 
-set (HIP_LINK "-L${HIP_LD}") 
-message("Universal Helpers - HIP_LINK: " ${HIP_LINK} )
-set (HIPRAND_LINK  "-L${ROCM_PREFIX}/lib -lhiprand" )
-message("Universal Helpers - HIPRAND_LINK: " ${HIPRAND_LINK} )
-set (HIP_INTERNAL_LINK_LIB "${HIP_LINK}")
-message("Universal Helpers - HIP_INTERNAL_LINK_LIB: " ${HIP_INTERNAL_LINK_LIB})
 set (HIPBLAS_LD ${HIPBLAS_PREFIX}/lib)
 set (HIPBLAS_LINK  "-L${HIPBLAS_LD} -lhipblas" )
 message("Universal Helpers - HIPBLAS_LINK: " ${HIPBLAS_LINK} )

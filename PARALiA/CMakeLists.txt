@@ -213,7 +213,21 @@ endif()
 set (CUDA_LD ${CUDA_PREFIX}/lib64) # or /lib depending on system
 set (CUDA_LINK "-L${CUDA_LD} -lcudart -lcublas -lcurand -lcuda")
 message("PARALiA-Framework - CUDA_LINK: " ${CUDA_LINK} )
+set (HIP_LD ${ROCM_PREFIX}/hip/lib) 
+set (HIP_LINK "-L${HIP_LD}") 
+message("PARALiA-Framework - HIP_LINK: " ${HIP_LINK} )
+set (HIPRAND_LINK  "-L${ROCM_PREFIX}/lib -lhiprand" )
+message("PARALiA-Framework - HIPRAND_LINK: " ${HIPRAND_LINK} )
+set (HIP_INTERNAL_LINK_LIB "${HIP_LINK}")
+message("PARALiA-Framework - HIP_INTERNAL_LINK_LIB: " ${HIP_INTERNAL_LINK_LIB})
+
 set (INTERNAL_LINK_LIB "${CUDA_LINK} -lrt -ldl")
+
+if(${BACKEND} STREQUAL "HIP")
+  set (INTERNAL_LINK_LIB "${INTERNAL_LINK_LIB} ${HIP_INTERNAL_LINK_LIB}")
+else()
+endif()
+
 message("PARALiA-Framework - INTERNAL_LINK_LIB: " ${INTERNAL_LINK_LIB})
 
 #-------------------------------------------------C/C++---------------------------------------------------------#
