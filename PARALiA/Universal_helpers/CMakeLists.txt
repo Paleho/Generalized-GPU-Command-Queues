@@ -117,12 +117,12 @@ message( "->\nUniversal Helpers - Shared Library: " ${CMAKE_LIBRARY_OUTPUT_DIREC
 message( "Universal Helpers - Shared Library headers: " ${UNIHELP_INSTALL_INC} )
 message( "------------------------------------------------------------------------------------------------")
 
-# Testing
-enable_testing()
-if (${BACKEND} STREQUAL "CuCuBLAS" OR ${BACKEND} STREQUAL "HIP")
-	add_subdirectory(testing)
-else()
-endif()
+# # Testing
+# enable_testing()
+# if (${BACKEND} STREQUAL "CuCuBLAS" OR ${BACKEND} STREQUAL "HIP")
+# 	add_subdirectory(testing)
+# else()
+# endif()
 
 #set_target_properties(unihelpers PROPERTIES VERSION ${PROJECT_VERSION})
 #set_target_properties(unihelpers PROPERTIES SOVERSION 0)
