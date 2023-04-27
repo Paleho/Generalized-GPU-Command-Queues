@@ -10,6 +10,7 @@
 
 #include <hip/hip_runtime.h>
 #include <hipblas/hipblas.h>
+#include <math.h>
 
 #include <unihelpers.hpp>
 
