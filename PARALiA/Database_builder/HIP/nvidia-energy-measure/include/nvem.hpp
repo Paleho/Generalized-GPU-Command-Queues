@@ -6,8 +6,8 @@
 #include <sys/time.h>
 #include <nvml.h>
 #include <pthread.h>
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
+#include <hip/hip_runtime.h>
 #include <time.h>
 #include <unistd.h>
 

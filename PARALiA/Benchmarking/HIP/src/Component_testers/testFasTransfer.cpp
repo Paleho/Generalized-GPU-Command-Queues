@@ -9,9 +9,8 @@
 #include "BackenedLibsWrapped.hpp"
 #include "Testing.hpp"
 
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <cublas_v2.h>
+#include <hip/hip_runtime.h>
+#include <hipblas/hipblas.h>
 #include <stdio.h>
 #include <cstring>
 
@@ -41,7 +40,7 @@ int main(const int argc, const char *argv[]) {
 
   fprintf(stderr,"\nTransfer benchmark@%s %d->%d : (%ld,%ld)\n", TESTBED, loc_src, loc_dest, TileDim, TileDim);
 
-  cudaGetDeviceCount(&dev_count);
+  hipGetDeviceCount(&dev_count);
 
   if (TileDim < 1) error("Transfer Microbench: Bytes must be > 0");
   else if ( dev_count < loc_src + 1) error("Transfer Microbench: Src device does not exist");

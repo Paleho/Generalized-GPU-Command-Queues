@@ -100,7 +100,7 @@ void *powerPollingFunc(void *curr_dev_stats_v)
 
 void NvemInit(){
 		int dev_num;
-		cudaGetDeviceCount(&dev_num);
+		hipGetDeviceCount(&dev_num);
 		nvem_dev_stats = (NvemControl_p*) malloc (dev_num * sizeof(NvemControl_p));
 		for (int i = 0; i < dev_num; i++) nvem_dev_stats[i] = NULL;
 		// Initialize nvml.
@@ -114,7 +114,7 @@ Function needs to be modified as per usage to handle errors as seen fit.
 void NvemStartMeasure(int dev_id, char* f_out, int verbose)
 { 	
 	int dev_num;
-	cudaGetDeviceCount(&dev_num);
+	hipGetDeviceCount(&dev_num);
 	if (dev_id < 0 || dev_id >= dev_num) error("NvemStartMeasure: dev_id out of CUDA device bounds, power measuring will not commence\n");
 
 	if (!nvem_dev_stats) NvemInit();
@@ -129,11 +129,11 @@ void NvemStartMeasure(int dev_id, char* f_out, int verbose)
 	curr_dev_stats->f_out = f_out;
 	curr_dev_stats->pollThreadStatus = 0;
 	curr_dev_stats->verbose = verbose;
-	cudaDeviceProp deviceProp;
-	cudaGetDeviceProperties(&deviceProp, dev_id);
+	hipDeviceProp_t deviceProp;
+	hipGetDeviceProperties(&deviceProp, dev_id);
 	if(curr_dev_stats->verbose) fprintf(stdout, "NvemStartMeasure: Device [%s] - Bus ID num: %d\n", deviceProp.name , deviceProp.pciBusID);
 
-	cudaDeviceGetPCIBusId(curr_dev_stats->PCIBusId, 255, dev_id);
+	hipDeviceGetPCIBusId(curr_dev_stats->PCIBusId, 255, dev_id);
     if(curr_dev_stats->verbose) fprintf(stdout, "NvemStartMeasure: Device Bus ID : %s\n", curr_dev_stats->PCIBusId);
 
 	// Count the number of GPUs available.
