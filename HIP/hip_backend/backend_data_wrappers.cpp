@@ -87,7 +87,8 @@ void *pin_malloc(long long count) {
 
 void* CoCoMalloc(long long bytes, short loc){
   int count = 42;
-  massert(HIPBLAS_STATUS_SUCCESS == hipGetDeviceCount(&count), "CoCoMalloc: hipGetDeviceCount failed");
+  hipError_t hip_err = hipGetDeviceCount(&count);
+  massert(hipSuccess == hip_err, "CoCoMalloc: hipGetDeviceCount failed: %s\n", hipGetErrorName (hip_err));
   void *ptr = NULL;
 
   if (-2 == loc) {
