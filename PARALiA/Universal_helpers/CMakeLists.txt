@@ -77,7 +77,9 @@ if (${BACKEND} STREQUAL "CuCuBLAS")
 		)
 	endif()
 
-	target_link_libraries(unihelpers ${CUDA_INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
+	message("Universal Helpers - INTERNAL_LINK_LIB: " ${INTERNAL_LINK_LIB} )
+	message("Universal Helpers - OPENBLAS_LINK: " ${OPENBLAS_LINK} )
+	target_link_libraries(unihelpers ${INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
 
 elseif(${BACKEND} STREQUAL "HIP")
 	if(${BUILD_BLAS_WRAPPERS_FLAG} EQUAL 1)
