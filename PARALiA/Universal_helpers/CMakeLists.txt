@@ -103,7 +103,9 @@ elseif(${BACKEND} STREQUAL "HIP")
 		)
 	endif()
 
-	target_link_libraries(unihelpers ${HIP_INTERNAL_LINK_LIB} ${OPENBLAS_LINK} ${CUDA_INTERNAL_LINK_LIB} ${HIPBLAS_LINK} ${HIPRAND_LINK})
+	message("Universal Helpers - INTERNAL_LINK_LIB: " ${INTERNAL_LINK_LIB} )
+	message("Universal Helpers - OPENBLAS_LINK: " ${OPENBLAS_LINK} )
+	target_link_libraries(unihelpers ${INTERNAL_LINK_LIB} ${OPENBLAS_LINK} ${HIPBLAS_LINK} ${HIPRAND_LINK})
 
 else()
 	message(FATAL_ERROR "Universal Helpers - BACKEND flag error: BACKEND=" ${BACKEND} )
