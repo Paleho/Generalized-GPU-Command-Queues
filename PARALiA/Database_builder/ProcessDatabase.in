@@ -1,0 +1,42 @@
+#!/bin/bash
+
+DEPLOY_DIR=@PROJECT_SOURCE_DIR@
+PYTHON_DIR=${DEPLOY_DIR}/Python-DataManage
+
+BACKEND=@BACKEND@
+
+machine=@TESTBED_NAME@
+device=$1
+
+SCRIPT_DIR=@DEPLOYMENT_INSTALL_PREFIX@
+
+RES_DIR=@DEPLOYMENT_DIR_DB@/Benchmark-Results
+OUTDIR=@DEPLOYMENT_DIR_DB@/Processed
+
+mkdir -p $OUTDIR
+
+if [[ "$BACKEND" == *"CuCuBLAS"* ]];then
+	library_id=0
+fi
+
+echo "python3 $SCRIPT_DIR/BenchToLookupTables.py -i $RES_DIR -o $OUTDIR -f Dgemm -d $device -l $library_id"
+python3 $SCRIPT_DIR/BenchToLookupTables.py -i $RES_DIR -o $OUTDIR -f Dgemm -d $device -l $library_id
+
+echo "python3 $SCRIPT_DIR/BenchToLookupTables.py -i $RES_DIR -o $OUTDIR -f Sgemm -d $device -l $library_id"
+python3 $SCRIPT_DIR/BenchToLookupTables.py -i $RES_DIR -o $OUTDIR -f Sgemm -d $device -l $library_id
+
+echo "python3 $SCRIPT_DIR/BenchToLookupTables.py -i $RES_DIR -o $OUTDIR -f Dsyrk -d $device -l $library_id"
+python3 $SCRIPT_DIR/BenchToLookupTables.py -i $RES_DIR -o $OUTDIR -f Dsyrk -d $device -l $library_id
+
+echo "python3 $SCRIPT_DIR/BenchToLookupTables.py -i $RES_DIR -o $OUTDIR -f Dgemv -d $device -l $library_id"
+python3 $SCRIPT_DIR/BenchToLookupTables.py -i $RES_DIR -o $OUTDIR -f Dgemv -d $device -l $library_id
+
+
+echo "python3 $SCRIPT_DIR/BenchToLookupTables.py -i $RES_DIR -o $OUTDIR -f Daxpy -d $device -l $library_id"
+python3 $SCRIPT_DIR/BenchToLookupTables.py -i $RES_DIR -o $OUTDIR -f Daxpy -d $device -l $library_id
+
+echo "python3 $SCRIPT_DIR/BenchToLookupTables.py -i $RES_DIR -o $OUTDIR -f Ddot -d $device -l $library_id"
+python3 $SCRIPT_DIR/BenchToLookupTables.py -i $RES_DIR -o $OUTDIR -f Ddot -d $device -l $library_id
+
+echo "python3 $SCRIPT_DIR/LinkPreprocessing.py -i $RES_DIR -o $OUTDIR -d $device -l $library_id"
+python3 $SCRIPT_DIR/LinkPreprocessing.py -i $RES_DIR -o $OUTDIR -d $device -l $library_id
