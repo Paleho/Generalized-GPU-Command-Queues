@@ -55,7 +55,7 @@ file(MAKE_DIRECTORY ${UNIHELP_INSTALL_INC})
 #FIXME: Current CoCoPeLia version only work with lazy events.
 add_definitions(-DENABLE_LAZY_EVENTS)
 
-if (${BACKEND} STREQUAL "CuCuBLAS")
+if (${BACKEND} STREQUAL "CuCuBLAS" OR ${BACKEND} STREQUAL "Pthreads")
 	if(${BUILD_BLAS_WRAPPERS_FLAG} EQUAL 1)
 
 		add_library(unihelpers SHARED
@@ -112,8 +112,14 @@ else()
 endif()
 
 configure_file(${UNIHELP_DIR_INC}/unihelpers.hpp ${UNIHELP_INSTALL_INC}/unihelpers.hpp COPYONLY)
-## FIXME: This is a temporary cheat for deployment, must be removed at some point (?). It has to do with TransposeTranslate.
-configure_file(${BACKEND_UNIHELP_DIR_SRC}/backend_wrappers.hpp ${UNIHELP_INSTALL_INC}/backend_wrappers.hpp COPYONLY)
+
+if(${BACKEND} STREQUAL "Pthreads")
+	## FIXME: This is a temporary cheat for deployment, must be removed at some point (?). It has to do with TransposeTranslate.
+	configure_file(${BACKEND_UNIHELP_DIR_SRC}/pthreads_backend_wrappers.hpp ${UNIHELP_INSTALL_INC}/pthreads_backend_wrappers.hpp COPYONLY)
+else()
+	## FIXME: This is a temporary cheat for deployment, must be removed at some point (?). It has to do with TransposeTranslate.
+	configure_file(${BACKEND_UNIHELP_DIR_SRC}/backend_wrappers.hpp ${UNIHELP_INSTALL_INC}/backend_wrappers.hpp COPYONLY)
+endif()
 
 
 set (UNIHELP_INSTALL_INC ${UNIHELP_INSTALL_INC} PARENT_SCOPE)
