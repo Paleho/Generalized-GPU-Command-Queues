@@ -28,7 +28,7 @@ add_definitions(-DUNIHELPER_LOCKFREE_ENABLE)
 #add_definitions(-DENABLE_MUTEX_LOCKING)
 
 ## Enable Running multiple backend operations in parallel for each queue
-add_definitions(-DENABLE_PARALLEL_BACKEND)
+# add_definitions(-DENABLE_PARALLEL_BACKEND)
 ## The maximum allowed parallel backend operations per queue
 add_definitions(-DMAX_BACKEND_L=8)
 
