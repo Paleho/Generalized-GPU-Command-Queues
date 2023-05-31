@@ -99,10 +99,10 @@ int main(int argc, char ** argv){
 	CQueue_p Q2_p = new CommandQueue(-1);
 	Event_p mult1_complete = new Event(-1);
 
-	gemm_backend_in_p input_1 = new gemm_backend_in;
-	gemm_backend_in_p input_2 = new gemm_backend_in;
-	gemm_backend_in_p input_3 = new gemm_backend_in;
-	gemm_backend_in_p input_4 = new gemm_backend_in;
+	gemm_backend_in<double>* input_1 = new gemm_backend_in<double>;
+	gemm_backend_in<double>* input_2 = new gemm_backend_in<double>;
+	gemm_backend_in<double>* input_3 = new gemm_backend_in<double>;
+	gemm_backend_in<double>* input_4 = new gemm_backend_in<double>;
 
 	input_1->TransA = 'N';	// normal matrix A
 	input_1->TransB = 'N';	// normal matrix B
@@ -118,7 +118,7 @@ int main(int argc, char ** argv){
 	input_1->B = (void **) &h_B;
 	input_1->C = (void **) &h_AB;
 	input_1->dev_id = -1;
-	backend_run_operation(input_1, "gemm", Q1_p);
+	backend_run_operation(input_1, "Dgemm", Q1_p);
 
 	input_2->TransA = 'N';	// normal matrix A
 	input_2->TransB = 'N';	// normal matrix B
@@ -134,7 +134,7 @@ int main(int argc, char ** argv){
 	input_2->B = (void **) &h_C;
 	input_2->C = (void **) &h_ABC;
 	input_2->dev_id = -1;
-	backend_run_operation(input_2, "gemm", Q1_p);
+	backend_run_operation(input_2, "Dgemm", Q1_p);
 
 	input_3->TransA = 'N';	// normal matrix A
 	input_3->TransB = 'N';	// normal matrix B
@@ -150,7 +150,7 @@ int main(int argc, char ** argv){
 	input_3->B = (void **) &h_D;
 	input_3->C = (void **) &h_ABCD;
 	input_3->dev_id = -1;
-	backend_run_operation(input_3, "gemm", Q1_p);
+	backend_run_operation(input_3, "Dgemm", Q1_p);
 
 	mult1_complete->record_to_queue(Q1_p);
 
@@ -171,7 +171,7 @@ int main(int argc, char ** argv){
 	input_4->B = (void **) &h_ABCD;
 	input_4->C = (void **) &h_MABCD;
 	input_4->dev_id = -1;
-	backend_run_operation(input_4, "gemm", Q2_p);
+	backend_run_operation(input_4, "Dgemm", Q2_p);
 
 	_matrixMultiply(h_M, h_A, N, N, N, 1.0, verify_MA);
 	_matrixMultiply(verify_MA, h_B, N, N, N, 1.0, verify_MAB);

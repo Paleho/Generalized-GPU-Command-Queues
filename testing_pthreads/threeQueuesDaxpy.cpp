@@ -86,7 +86,7 @@ int main(int argc, char ** argv){
 
 	// Prepare blas operation
 	// Q1: c1*A + B
-	axpy_backend_in_p axpyData_p_1 = (axpy_backend_in_p) CoCoMalloc(sizeof(struct axpy_backend_in), -1);
+	axpy_backend_in<double>* axpyData_p_1 = (axpy_backend_in<double>*) CoCoMalloc(sizeof(axpy_backend_in<double>), -1);
 	axpyData_p_1->N = N;
 	axpyData_p_1->incx = 1;
 	axpyData_p_1->incy = 1;
@@ -96,7 +96,7 @@ int main(int argc, char ** argv){
 	axpyData_p_1->dev_id = dev_id;
 
 	// Run blas operation
-	backend_run_operation(axpyData_p_1, "axpy", Q1_p);
+	backend_run_operation(axpyData_p_1, "Daxpy", Q1_p);
 	// axpy stores result in y vector = d_B
 
 	// Enqueue event
@@ -105,7 +105,7 @@ int main(int argc, char ** argv){
 
 	// Prepare blas operation
 	// Q2: c2*C + D
-	axpy_backend_in_p axpyData_p_2 = (axpy_backend_in_p) CoCoMalloc(sizeof(struct axpy_backend_in), -1);
+	axpy_backend_in<double>* axpyData_p_2 = (axpy_backend_in<double>*) CoCoMalloc(sizeof(axpy_backend_in<double>), -1);
 	axpyData_p_2->N = N;
 	axpyData_p_2->incx = 1;
 	axpyData_p_2->incy = 1;
@@ -115,7 +115,7 @@ int main(int argc, char ** argv){
 	axpyData_p_2->dev_id = dev_id;
 
 	// Run blas operation
-	backend_run_operation(axpyData_p_2, "axpy", Q2_p);
+	backend_run_operation(axpyData_p_2, "Daxpy", Q2_p);
 	// axpy stores result in y vector = d_D
 	// Enqueue event
 	Event_p event_p_2 = new Event(dev_id);
@@ -123,7 +123,7 @@ int main(int argc, char ** argv){
 
 	// Prepare blas operation
 	// Q3: c3*Res_Q1 + Res_Q2
-	axpy_backend_in_p axpyData_p_3 = (axpy_backend_in_p) CoCoMalloc(sizeof(struct axpy_backend_in), -1);
+	axpy_backend_in<double>* axpyData_p_3 = (axpy_backend_in<double>*) CoCoMalloc(sizeof(axpy_backend_in<double>), -1);
 	axpyData_p_3->N = N;
 	axpyData_p_3->incx = 1;
 	axpyData_p_3->incy = 1;
@@ -137,7 +137,7 @@ int main(int argc, char ** argv){
 	Q3_p->wait_for_event(event_p_2);
 
 	// Run blas operation
-	backend_run_operation(axpyData_p_3, "axpy", Q3_p);
+	backend_run_operation(axpyData_p_3, "Daxpy", Q3_p);
 	// axpy stores result in y vector = d_B
  
 	// Copy result from device memory to host memory

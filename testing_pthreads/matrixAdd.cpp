@@ -85,7 +85,7 @@ int main(int argc, char ** argv){
 
 	// Prepare blas operation
 	// C = A*I + C = A + C
-	gemm_backend_in_p gemmData_p = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	gemmData_p->TransA = 'N';	// normal matrix A
 	gemmData_p->TransB = 'N';	// normal matrix B
 	gemmData_p->M = N;
@@ -107,7 +107,7 @@ int main(int argc, char ** argv){
 
 	// Prepare blas operation
 	// C = B*I + C = B + C
-	gemm_backend_in_p gemmData_p_2 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_2 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	gemmData_p_2->TransA = 'N';	// normal matrix A
 	gemmData_p_2->TransB = 'N';	// normal matrix B
 	gemmData_p_2->M = N;

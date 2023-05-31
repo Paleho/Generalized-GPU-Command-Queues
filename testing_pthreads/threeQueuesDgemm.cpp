@@ -122,7 +122,7 @@ int main(int argc, char ** argv){
 	// B = k x n
 	// C = m x n
 	// Q1: c1 *  A*B -> store in d_res1
-	gemm_backend_in_p gemmData_p_1 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_1 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	gemmData_p_1->TransA = 'N';	// normal matrix A
 	gemmData_p_1->TransB = 'N';	// normal matrix B
 	gemmData_p_1->M = M;
@@ -139,7 +139,7 @@ int main(int argc, char ** argv){
 	gemmData_p_1->dev_id = dev_id;
 
 	// Run blas operation
-	backend_run_operation(gemmData_p_1, "gemm", Q1_p);
+	backend_run_operation(gemmData_p_1, "Dgemm", Q1_p);
 	// gemm stores result matrix in C = d_res1
 
 	// Enqueue event
@@ -152,7 +152,7 @@ int main(int argc, char ** argv){
 	// B = D = l x k
 	// C = res2 = n x k
 	// Q2: c2 * C*D -> store in d_res2
-	gemm_backend_in_p gemmData_p_2 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_2 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	gemmData_p_2->TransA = 'N';	// normal matrix A
 	gemmData_p_2->TransB = 'N';	// normal matrix B
 	gemmData_p_2->M = N;
@@ -169,7 +169,7 @@ int main(int argc, char ** argv){
 	gemmData_p_2->dev_id = dev_id;
 
 	// Run blas operation
-	backend_run_operation(gemmData_p_2, "gemm", Q2_p);
+	backend_run_operation(gemmData_p_2, "Dgemm", Q2_p);
 	// gemm stores result matrix in C = d_res2
 
 	// Enqueue event
@@ -182,7 +182,7 @@ int main(int argc, char ** argv){
 	// B = res2 = n x k
 	// C = A = m x k
 	// Q3: c3 * res1*res2 + A -> store in A
-	gemm_backend_in_p gemmData_p_3 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_3 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	gemmData_p_3->TransA = 'N';	// normal matrix A
 	gemmData_p_3->TransB = 'N';	// normal matrix B
 	gemmData_p_3->M = M;
@@ -203,7 +203,7 @@ int main(int argc, char ** argv){
 	Q3_p->wait_for_event(event_p_2);
 
 	// Run blas operation
-	backend_run_operation(gemmData_p_3, "gemm", Q3_p);
+	backend_run_operation(gemmData_p_3, "Dgemm", Q3_p);
 	// gemm stores result matrix in C = d_A
  
 	// Copy result from device memory to host memory

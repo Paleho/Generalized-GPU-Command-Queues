@@ -89,7 +89,7 @@ int main(int argc, char ** argv){
 	// A = m x k
 	// B = k x n
 	// C = m x n
-	gemm_backend_in_p gemmData_p = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	gemmData_p->TransA = 'N';	// normal matrix A
 	gemmData_p->TransB = 'N';	// normal matrix B
 	gemmData_p->M = M;
@@ -106,7 +106,7 @@ int main(int argc, char ** argv){
 	gemmData_p->dev_id = dev_id;
 
 	// Run blas operation
-	backend_run_operation(gemmData_p, "gemm", MyQueue_p);
+	backend_run_operation(gemmData_p, "Dgemm", MyQueue_p);
 	// gemm stores result matrix d_C
  
 	// Copy result from device memory to host memory

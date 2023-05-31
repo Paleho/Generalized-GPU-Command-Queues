@@ -111,10 +111,10 @@ int main(int argc, char ** argv){
 	// Q0[]: array of 4 queues in device 0
 	CQueue_p * Q0 = (CQueue_p *) CoCoMalloc(4 * sizeof(CQueue_p), -2); // regular (not pinned) host malloc
 
-	gemm_backend_in_p gemmData_p_0 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
-    gemm_backend_in_p gemmData_p_1 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
-    gemm_backend_in_p gemmData_p_2 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
-    gemm_backend_in_p gemmData_p_3 = (gemm_backend_in_p) CoCoMalloc(sizeof(struct gemm_backend_in), -1);
+	gemm_backend_in<double>* gemmData_p_0 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
+    gemm_backend_in<double>* gemmData_p_1 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
+    gemm_backend_in<double>* gemmData_p_2 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
+    gemm_backend_in<double>* gemmData_p_3 = (gemm_backend_in<double>*) CoCoMalloc(sizeof(gemm_backend_in<double>), -1);
 	Event_p d0_AB_ready = new Event(0);
 	Event_p d0_ABC_ready = new Event(0);
 	Event_p d0_ABCD_ready = new Event(0);
@@ -144,7 +144,7 @@ int main(int argc, char ** argv){
 	gemmData_p_0->dev_id = 0;
 
 	// Run blas operation
-	backend_run_operation(gemmData_p_0, "gemm", Q0[0]);
+	backend_run_operation(gemmData_p_0, "Dgemm", Q0[0]);
 	// gemm stores result matrix in C = d0_AB
 
 	d0_AB_ready->record_to_queue(Q0[0]);
@@ -175,7 +175,7 @@ int main(int argc, char ** argv){
 	gemmData_p_1->dev_id = 0;
 
 	// Run blas operation
-	backend_run_operation(gemmData_p_1, "gemm", Q0[1]);
+	backend_run_operation(gemmData_p_1, "Dgemm", Q0[1]);
 	// gemm stores result matrix in C = d0_ABC
 
 	d0_ABC_ready->record_to_queue(Q0[1]);
@@ -206,7 +206,7 @@ int main(int argc, char ** argv){
 	gemmData_p_2->dev_id = 0;
 
 	// Run blas operation
-	backend_run_operation(gemmData_p_2, "gemm", Q0[2]);
+	backend_run_operation(gemmData_p_2, "Dgemm", Q0[2]);
 	// gemm stores result matrix in C = d0_ABCD
 
 	d0_ABCD_ready->record_to_queue(Q0[2]);
@@ -237,7 +237,7 @@ int main(int argc, char ** argv){
 	gemmData_p_3->dev_id = 0;
 
 	// Run blas operation
-	backend_run_operation(gemmData_p_3, "gemm", Q0[3]);
+	backend_run_operation(gemmData_p_3, "Dgemm", Q0[3]);
 	// gemm stores result matrix in C = d0_ABCDE
 
 	d0_ABCDE_ready->record_to_queue(Q0[3]);

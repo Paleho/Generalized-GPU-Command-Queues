@@ -69,7 +69,7 @@ int main(int argc, char ** argv){
  	CoCoMemcpyAsync(d_B, h_B, size, dev_id, -1, MyQueue_p);
 
 	// Prepare blas operation
-	axpy_backend_in_p axpyData_p = (axpy_backend_in_p) CoCoMalloc(sizeof(struct axpy_backend_in), -1);
+	axpy_backend_in<double>* axpyData_p = (axpy_backend_in<double>*) CoCoMalloc(sizeof(axpy_backend_in<double>), -1);
 	axpyData_p->N = N;
 	axpyData_p->incx = 1;
 	axpyData_p->incy = 1;
@@ -79,7 +79,7 @@ int main(int argc, char ** argv){
 	axpyData_p->dev_id = dev_id;
 
 	// Run blas operation
-	backend_run_operation(axpyData_p, "axpy", MyQueue_p);
+	backend_run_operation(axpyData_p, "Daxpy", MyQueue_p);
 	// axpy stores result in y vector = d_B
  
 	// Copy result from device memory to host memory
