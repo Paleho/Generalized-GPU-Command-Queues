@@ -250,9 +250,9 @@ void cublas_wrap_dgemm(void* wider_backend_data){
     B = %p, ldb = %d, beta = %lf, C = %p, ldC = %d)\n",
     ptr_ker_translate->dev_id, ptr_ker_translate->TransA, ptr_ker_translate->TransB,
     ptr_ker_translate->M, ptr_ker_translate->N, ptr_ker_translate->K, ptr_ker_translate->alpha,
-    (VALUE_TYPE*) *ptr_ker_translate->A, ptr_ker_translate->ldA,
-    (VALUE_TYPE*) *ptr_ker_translate->B, ptr_ker_translate->ldB,
-    ptr_ker_translate->beta, (VALUE_TYPE*) *ptr_ker_translate->C, ptr_ker_translate->ldC);
+    (double*) *ptr_ker_translate->A, ptr_ker_translate->ldA,
+    (double*) *ptr_ker_translate->B, ptr_ker_translate->ldB,
+    ptr_ker_translate->beta, (double*) *ptr_ker_translate->C, ptr_ker_translate->ldC);
 #endif
 
   queue_data_p queue_backend_data = wider_data_p->q_data;
@@ -272,9 +272,9 @@ void cublas_wrap_dgemm(void* wider_backend_data){
   massert(CUBLAS_STATUS_SUCCESS == cublasDgemm(temp_handle,
     OpCharToCublas(ptr_ker_translate->TransA), OpCharToCublas(ptr_ker_translate->TransB),
     ptr_ker_translate->M, ptr_ker_translate->N, ptr_ker_translate->K, &ptr_ker_translate->alpha,
-    (VALUE_TYPE*) *ptr_ker_translate->A, ptr_ker_translate->ldA,
-    (VALUE_TYPE*) *ptr_ker_translate->B, ptr_ker_translate->ldB,
-    &ptr_ker_translate->beta, (VALUE_TYPE*) *ptr_ker_translate->C, ptr_ker_translate->ldC),
+    (double*) *ptr_ker_translate->A, ptr_ker_translate->ldA,
+    (double*) *ptr_ker_translate->B, ptr_ker_translate->ldB,
+    &ptr_ker_translate->beta, (double*) *ptr_ker_translate->C, ptr_ker_translate->ldC),
     "cublas_wrap_dgemm: cublasDgemm failed\n");
 
   cudaError_t err = cudaStreamSynchronize(queue_backend_data->stream_pool[current_stream_ctr]);
