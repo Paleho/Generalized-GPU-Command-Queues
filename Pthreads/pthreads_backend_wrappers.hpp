@@ -44,20 +44,39 @@ typedef struct pthread_event {
     event_status estate;
 }* pthread_event_p; 
 
-typedef struct gemm_backend_in{
+template<typename VALUETYPE> class gemm_backend_in{
+public:
 	char TransA,  TransB;
 	int M, N, K, ldA, ldB, ldC;
-	VALUE_TYPE alpha,beta;
+	VALUETYPE alpha,beta;
 	void **A, **B, **C;
 	short dev_id;
-}* gemm_backend_in_p;
+};
 
-typedef struct axpy_backend_in{
-	int N, incx, incy;
-	VALUE_TYPE alpha;
+template<typename VALUETYPE> class gemv_backend_in{
+public:
+	char TransA,  incx, incy;
+	int M, N, ldA;
+	VALUETYPE alpha,beta;
+	void **A, **x, **y;
+	short dev_id;
+};
+
+template<typename VALUETYPE> class axpy_backend_in{
+public:
+		int N, incx, incy;
+	VALUETYPE alpha;
 	void **x, **y;
 	short dev_id;
-}* axpy_backend_in_p;
+};
+
+template<typename VALUETYPE> class dot_backend_in{
+public:
+	int N, incx, incy;
+	void **x, **y;
+	VALUETYPE* result;
+	short dev_id;
+};
 
 typedef struct wider_backend_in{
     queue_data_p q_data;
@@ -108,12 +127,18 @@ void CoCoSetTimerAsync(void* wrapped_timer_Ptr);
 
 void CoCoFreeAllocAsync(void* backend_data);
 
-void cublas_wrap_daxpy(void* backend_data);
-void cublas_wrap_saxpy(void* backend_data, void* queue_wrap_p);
-void cublas_wrap_dgemm(void* backend_data);
-void cublas_wrap_sgemm(void* backend_data, void* queue_wrap_p);
+void cublas_wrap_ddot(void* wider_backend_data);
+
+void cublas_wrap_daxpy(void* wider_backend_data);
+void cublas_wrap_saxpy(void* wider_backend_data);
+void cublas_wrap_dgemm(void* wider_backend_data);
+void cublas_wrap_dgemv(void* wider_backend_data);
+void cublas_wrap_sgemm(void* wider_backend_data);
+
+void cblas_wrap_ddot(void* backend_data);
 
 void cblas_wrap_daxpy(void* backend_data);
 void cblas_wrap_saxpy(void* backend_data);
 void cblas_wrap_dgemm(void* backend_data);
+void cblas_wrap_dgemv(void* backend_data);
 void cblas_wrap_sgemm(void* backend_data);

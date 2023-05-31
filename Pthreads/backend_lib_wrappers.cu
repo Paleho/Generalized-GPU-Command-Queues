@@ -19,54 +19,79 @@ int thread_ctr = 0, thread_lock = 0 ;
 void backend_run_operation(void* backend_data, const char* opname, CQueue_p run_queue){
 
   short lvl = 5;
-  if (!strcmp(opname, "gemm")){
-    gemm_backend_in_p ptr_ker_translate = (gemm_backend_in_p) backend_data;
-    if (std::is_same<VALUE_TYPE, double>::value){
+  if (!strcmp(opname, "Dgemm")){
+    gemm_backend_in<double>* ptr_ker_translate = (gemm_backend_in<double>*) backend_data;
+    if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_dgemm, backend_data);
+    else if(ptr_ker_translate->dev_id >= 0){
+      // prepare data (add queue data)
+      wider_backend_in_p wider_data = new wider_backend_in;
+      wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data;
+      wider_data->backend_data = backend_data;
 
-      if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_dgemm, backend_data);
-      else if(ptr_ker_translate->dev_id >= 0){
-        // prepare data (add queue data)
-        wider_backend_in_p wider_data = new wider_backend_in;
-        wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data;
-        wider_data->backend_data = backend_data;
-
-        run_queue->add_host_func((void*)&cublas_wrap_dgemm, (void*)wider_data);
-      }
-      else error("backend_run_operation(gemm,double): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
+      run_queue->add_host_func((void*)&cublas_wrap_dgemm, (void*)wider_data);
     }
-    else if (std::is_same<VALUE_TYPE, float>::value){
-
-      if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_sgemm, backend_data);
-      else if(ptr_ker_translate->dev_id >= 0) cublas_wrap_sgemm(backend_data, run_queue);
-      else error("backend_run_operation(gemm,float): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
-    }
-    else error("backend_run_operation(gemm): Not implemented for VALUETYPE\n");
+    else error("backend_run_operation(gemm,double): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
   }
+  else if (!strcmp(opname, "Dgemv")){
+    gemv_backend_in<double>* ptr_ker_translate = (gemv_backend_in<double>*) backend_data;
+    if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_dgemv, backend_data);
+    else if(ptr_ker_translate->dev_id >= 0){
+      // prepare data (add queue data)
+      wider_backend_in_p wider_data = new wider_backend_in;
+      wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data;
+      wider_data->backend_data = backend_data;
 
-
-  else if(!strcmp(opname, "axpy")){
-    axpy_backend_in_p ptr_ker_translate = (axpy_backend_in_p) backend_data;
-    if (std::is_same<VALUE_TYPE, double>::value){
-      
-      if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_daxpy, backend_data);
-      else if(ptr_ker_translate->dev_id >= 0){
-        // prepare data (add queue data)
-        wider_backend_in_p wider_data = new wider_backend_in;
-        wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data;
-        wider_data->backend_data = backend_data;
-
-        run_queue->add_host_func((void*)&cublas_wrap_daxpy, (void*)wider_data);
-      }
-      else error("backend_run_operation(axpy,double): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
+      run_queue->add_host_func((void*)&cublas_wrap_dgemv, (void*)wider_data);
     }
-    else if (std::is_same<VALUE_TYPE, float>::value){
-      
-      if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_saxpy, backend_data);
-      else if(ptr_ker_translate->dev_id >= 0) cublas_wrap_saxpy(backend_data, run_queue);
-      else error("backend_run_operation(axpy,float): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
-    }
-    else error("backend_run_operation(axpy): Not implemented for VALUETYPE\n");
+    else error("backend_run_operation(dgemv): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
   }
-  else error("backend_run_operation: unknown/not implemented opname=%s\n", opname);
+  else if(!strcmp(opname, "Sgemm")){
+    gemm_backend_in<float>* ptr_ker_translate = (gemm_backend_in<float>*) backend_data;
+    if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_sgemm, backend_data);
+    else if(ptr_ker_translate->dev_id >= 0){
+      // prepare data (add queue data)
+      wider_backend_in_p wider_data = new wider_backend_in;
+      wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data;
+      wider_data->backend_data = backend_data;
+
+      run_queue->add_host_func((void*)&cublas_wrap_sgemm, (void*)wider_data);
+    }
+    else error("backend_run_operation(sgemm): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
+  }
+  else if(!strcmp(opname, "Daxpy")){
+    axpy_backend_in<double>* ptr_ker_translate = (axpy_backend_in<double>*) backend_data;
+    if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_daxpy, backend_data);
+    else if(ptr_ker_translate->dev_id >= 0){
+      // prepare data (add queue data)
+      wider_backend_in_p wider_data = new wider_backend_in;
+      wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data;
+      wider_data->backend_data = backend_data;
+
+      run_queue->add_host_func((void*)&cublas_wrap_daxpy, (void*)wider_data);
+    }
+    else error("backend_run_operation(axpy,double): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
+  }
+  else if(!strcmp(opname, "Saxpy")){
+    axpy_backend_in<float>* ptr_ker_translate = (axpy_backend_in<float>*) backend_data;
+    error("backend_run_operation(axpy,float): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
+  }
+  else if(!strcmp(opname, "Ddot")){
+    dot_backend_in<double>* ptr_ker_translate = (dot_backend_in<double>*) backend_data;
+    if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_ddot, backend_data);
+    else if(ptr_ker_translate->dev_id >= 0){
+      // prepare data (add queue data)
+      wider_backend_in_p wider_data = new wider_backend_in;
+      wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data;
+      wider_data->backend_data = backend_data;
+
+      run_queue->add_host_func((void*)&cublas_wrap_ddot, (void*)wider_data);
+    }
+    else error("backend_run_operation(ddot): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
+  }
+  else if(!strcmp(opname, "Sdot")){
+    dot_backend_in<float>* ptr_ker_translate = (dot_backend_in<float>*) backend_data;
+    error("backend_run_operation(sdot): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
+  }
+  else error("backend_run_operation: unkown/not implemented opname=%s\n", opname);
 }
 
