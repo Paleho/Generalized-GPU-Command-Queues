@@ -18,7 +18,12 @@ using namespace std;
 
 // Queue lock
 inline void get_lock_q(int * lock){
-	while(__sync_lock_test_and_set (lock, 1));
+	while(__sync_lock_test_and_set (lock, 1)){
+		;
+		#ifdef UDDEBUG
+			lprintf(1, "------- Spinning on Queue lock\n");
+		#endif
+	}
 }
 inline void release_lock_q(int * lock){
 	__sync_lock_release(lock);

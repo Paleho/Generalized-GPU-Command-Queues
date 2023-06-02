@@ -17,7 +17,12 @@ int unihelper_lock = 0;
 
 inline void get_lock(){
 #ifndef UNIHELPER_LOCKFREE_ENABLE
-	while(__sync_lock_test_and_set (&unihelper_lock, 1));
+	while(__sync_lock_test_and_set (&unihelper_lock, 1)){
+		;
+		#ifdef UDDEBUG
+			lprintf(lvl, "------- Spinning on Unihelper lock\n");
+		#endif
+	}
 #endif
 	;
 }
