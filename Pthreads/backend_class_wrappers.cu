@@ -371,8 +371,8 @@ void Event::sync_barrier()
 		else{
 			pthread_event_p event_p = (pthread_event_p) event_backend_ptr;
 			while(event_p->estate < COMPLETE){;
-				#ifdef UDEBUG
-					lprintf(lvl, "[dev_id=%3d] ------- Event(%d)::sync_barrier() waiting... state = %d\n", dev_id, id, event_p->estate);
+				#ifdef UDDEBUG
+					lprintf(lvl, "[dev_id=%3d] ------- Event(%d)::sync_barrier() waiting... state = %s\n", dev_id, id, print_event_status(event_p->estate));
 				#endif
 			}
 
