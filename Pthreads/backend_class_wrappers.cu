@@ -313,6 +313,10 @@ Event::Event(int dev_id_in)
 #endif
 	// cout << "Event::Event: waiting for unihelpersLock" << endl;
 	get_lock();
+	id = Event_num_device[idxize(dev_id_in)];
+	Event_num_device[idxize(dev_id_in)]++;
+	dev_id = dev_id_in;
+
 	pthread_event_p event_p = new pthread_event;
 	event_p->estate = UNRECORDED;
 	event_backend_ptr = (void*) event_p;
@@ -331,6 +335,7 @@ Event::~Event()
 	sync_barrier();
 	// cout << "Event::~Event: waiting for unihelpersLock" << endl;
 	get_lock();
+	Event_num_device[idxize(dev_id)]--;
 
 	pthread_event_p event_p = (pthread_event_p) event_backend_ptr;
 	delete(event_p);
@@ -354,7 +359,11 @@ void Event::sync_barrier()
 		}
 		else{
 			pthread_event_p event_p = (pthread_event_p) event_backend_ptr;
-			while(event_p->estate < COMPLETE);
+			while(event_p->estate < COMPLETE){;
+				#ifdef UDEBUG
+					lprintf(lvl, "[dev_id=%3d] ------- Event(%d)::sync_barrier() waiting... state = %d\n", dev_id, id, event_p->estate);
+				#endif
+			}
 
 			status = COMPLETE;
 		}
@@ -367,7 +376,9 @@ void Event::sync_barrier()
 }
 
 void Event::record_to_queue(CQueue_p Rr){
-	// cout << "Event::record_to_queue: waiting for unihelpersLock" << endl;
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::record_to_queue() getting lock\n", dev_id, id);
+#endif
 	get_lock();
 	if (Rr == NULL){
 #ifdef UDDEBUG
@@ -476,7 +487,14 @@ void Event::soft_reset(){
 	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::soft_reset()\n", dev_id, id);
 #endif
 	get_lock();
-		((pthread_event_p) event_backend_ptr)->estate = UNRECORDED;
+		// delete old event
+		pthread_event_p event_p = (pthread_event_p) event_backend_ptr;
+		delete(event_p);
+
+		// create new event
+		pthread_event_p new_event_p = new pthread_event;
+		new_event_p->estate = UNRECORDED;
+		event_backend_ptr = (void*) new_event_p;
 		status = UNRECORDED;
 	release_lock();
 #ifdef UDDEBUG
@@ -488,7 +506,12 @@ void Event::reset(){
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::reset() calls soft_reset()\n", dev_id, id);
 #endif
+	sync_barrier();
 	soft_reset();
+
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] <-----| Event(%d)::reset()\n", dev_id, id);
+#endif
 }
 
 /*****************************************************/
