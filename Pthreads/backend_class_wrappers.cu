@@ -457,53 +457,38 @@ event_status Event::query_status(){
 	return local_status;
 }
 
-// void Event::checked(){
-// #ifdef UDDEBUG
-// 	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::checked()\n", dev_id, id);
-// #endif
-// 	get_lock();
-// 	if (status == COMPLETE) status = CHECKED;
-// 	else error("Event::checked(): error event was %s,  not COMPLETE()\n", print_event_status(status));
-// 	release_lock();
-// #ifdef UDDEBUG
-// 	lprintf(lvl, "[dev_id=%3d] <-----| Event(%d)::checked()\n", dev_id, id);
-// #endif
-// }
+void Event::checked(){
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::checked()\n", dev_id, id);
+#endif
+	get_lock();
+	if (status == COMPLETE) status = CHECKED;
+	else error("Event::checked(): error event was %s,  not COMPLETE()\n", print_event_status(status));
+	release_lock();
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] <-----| Event(%d)::checked()\n", dev_id, id);
+#endif
+}
 
-// void Event::soft_reset(){
-// #ifdef UDDEBUG
-// 	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::soft_reset()\n", dev_id, id);
-// #endif
-// 	//sync_barrier();
-// 	get_lock();
-// 	//event_status prev_status = status;
-// 	status = UNRECORDED;
-// 	release_lock();
-// #ifdef UDDEBUG
-// 	lprintf(lvl, "[dev_id=%3d] <-----| Event(%d)::soft_reset()\n", dev_id, id);
-// #endif
-// }
+void Event::soft_reset(){
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::soft_reset()\n", dev_id, id);
+#endif
+	get_lock();
+		((pthread_event_p) event_backend_ptr)->estate = UNRECORDED;
+		status = UNRECORDED;
+	release_lock();
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] <-----| Event(%d)::soft_reset()\n", dev_id, id);
+#endif
+}
 
-// void Event::reset(){
-// #ifdef UDDEBUG
-// 	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::reset()\n", dev_id, id);
-// #endif
-// 	sync_barrier();
-// 	get_lock();
-// 	event_status prev_status = status;
-// 	status = UNRECORDED;
-// #ifdef ENABLE_LAZY_EVENTS
-// 	if(dev_id >= -1){
-// 		dev_id = dev_id - 42;
-// 		cudaError_t err = cudaEventDestroy(*(( cudaEvent_t*) event_backend_ptr));
-// 		massert(cudaSuccess == err, "[dev_id=%3d] (Lazy)Event(%d)::reset - %s\n", dev_id + 42, id, cudaGetErrorString(err));
-// 	}
-// #endif
-// 	release_lock();
-// #ifdef UDDEBUG
-// 	lprintf(lvl, "[dev_id=%3d] <-----| Event(%d)::reset()\n", dev_id, id);
-// #endif
-// }
+void Event::reset(){
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::reset() calls soft_reset()\n", dev_id, id);
+#endif
+	soft_reset();
+}
 
 // /*****************************************************/
 // /// Event-based timer class functions

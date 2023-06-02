@@ -251,16 +251,16 @@ void CoCoMemcpy2D(void* dest, long int ldest, void* src, long int ldsrc, long in
 	return;
 }
 
-// void CoCMempy2DAsyncWrap3D(void* dest, long int ldest, void* src, long int ldsrc, long int rows, long int cols, short elemSize, short loc_dest, short loc_src, CQueue_p transfer_queue){
-// 	// Convert 2d input (as CoCoMemcpy2DAsync) to 3D for ...reasons.
-// 	enum cudaMemcpyKind kind = cudaMemcpyDefault;
-// 	cudaStream_t stream = *((cudaStream_t*)transfer_queue->cqueue_backend_ptr);
-// 	cudaMemcpy3DParms* cudaMemcpy3DParms_p = (cudaMemcpy3DParms*) calloc(1, sizeof(cudaMemcpy3DParms));
-// 	cudaMemcpy3DParms_p->extent = make_cudaExtent(rows*elemSize, cols, 1);
-// 	cudaMemcpy3DParms_p->srcPtr = make_cudaPitchedPtr (src, ldsrc*elemSize, rows, cols );
-// 	cudaMemcpy3DParms_p->dstPtr = make_cudaPitchedPtr (dest, ldest*elemSize, rows, cols );
-// 	massert(cudaSuccess == cudaMemcpy3DAsync ( cudaMemcpy3DParms_p, stream) , "cudaMemcpy3DAsync failed\n");
-// }
+void CoCMempy2DAsyncWrap3D(void* dest, long int ldest, void* src, long int ldsrc, long int rows, long int cols, short elemSize, short loc_dest, short loc_src, CQueue_p transfer_queue){
+	// Convert 2d input (as CoCoMemcpy2DAsync) to 3D for ...reasons.
+	enum cudaMemcpyKind kind = cudaMemcpyDefault;
+	cudaStream_t stream = *((cudaStream_t*)transfer_queue->cqueue_backend_ptr);
+	cudaMemcpy3DParms* cudaMemcpy3DParms_p = (cudaMemcpy3DParms*) calloc(1, sizeof(cudaMemcpy3DParms));
+	cudaMemcpy3DParms_p->extent = make_cudaExtent(rows*elemSize, cols, 1);
+	cudaMemcpy3DParms_p->srcPtr = make_cudaPitchedPtr (src, ldsrc*elemSize, rows, cols );
+	cudaMemcpy3DParms_p->dstPtr = make_cudaPitchedPtr (dest, ldest*elemSize, rows, cols );
+	massert(cudaSuccess == cudaMemcpy3DAsync ( cudaMemcpy3DParms_p, stream) , "cudaMemcpy3DAsync failed\n");
+}
 
 typedef struct CoCoMemcpy2D_data
 {
@@ -337,94 +337,94 @@ void CoCoMemcpy2DAsync(void* dest, long int ldest, void* src, long int ldsrc, lo
 	return;
 }
 
-// template<typename VALUETYPE>
-// void CoCoVecInit(VALUETYPE *vec, long long length, int seed, short loc)
-// {
-//   int count = 42;
-//   cudaGetDeviceCount(&count);
-//   if (!vec) error("CoCoVecInit: vec is not allocated (correctly)\n");
-//   if (-2 == loc || -1 == loc) CoCoParallelVecInitHost(vec, length, seed);
-//   else if (loc >= count || loc < 0) error("CoCoVecInit: Invalid device id/location\n");
-//   else {
-// 	int prev_loc; cudaGetDevice(&prev_loc);
+template<typename VALUETYPE>
+void CoCoVecInit(VALUETYPE *vec, long long length, int seed, short loc)
+{
+  int count = 42;
+  cudaGetDeviceCount(&count);
+  if (!vec) error("CoCoVecInit: vec is not allocated (correctly)\n");
+  if (-2 == loc || -1 == loc) CoCoParallelVecInitHost(vec, length, seed);
+  else if (loc >= count || loc < 0) error("CoCoVecInit: Invalid device id/location\n");
+  else {
+	int prev_loc; cudaGetDevice(&prev_loc);
 
-// 	//if (prev_loc != loc) warning("CoCoVecInit: Initialized vector in other device (Previous device: %d, init in: %d)\n", prev_loc, loc);
-//     	cudaSetDevice(loc);
-// 	curandGenerator_t gen;
-// 	/* Create pseudo-random number generator */
-// 	massert(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT) == cudaSuccess,
-//           cudaGetErrorString(cudaGetLastError()));
-// 	/* Set seed */
-// 	massert(curandSetPseudoRandomGeneratorSeed(gen, seed) == cudaSuccess,
-//           cudaGetErrorString(cudaGetLastError()));
-// 	if (typeid(VALUETYPE) == typeid(float))
-// 	  massert(curandGenerateUniform(gen, (float*) vec, length) == cudaSuccess,
-//             cudaGetErrorString(cudaGetLastError()));
-// 	else if (typeid(VALUETYPE) == typeid(double))
-// 	  massert(curandGenerateUniformDouble(gen, (double*) vec, length) == cudaSuccess,
-//             cudaGetErrorString(cudaGetLastError()));
-// 	cudaCheckErrors();
-//     	if (prev_loc != loc){
-// 		//warning("CoCoVecInit: Reseting device to previous: %d\n", prev_loc);
-// 		cudaSetDevice(prev_loc);
-// 	}
-//   }
-//   cudaCheckErrors();
-// }
+	//if (prev_loc != loc) warning("CoCoVecInit: Initialized vector in other device (Previous device: %d, init in: %d)\n", prev_loc, loc);
+    	cudaSetDevice(loc);
+	curandGenerator_t gen;
+	/* Create pseudo-random number generator */
+	massert(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT) == cudaSuccess,
+          cudaGetErrorString(cudaGetLastError()));
+	/* Set seed */
+	massert(curandSetPseudoRandomGeneratorSeed(gen, seed) == cudaSuccess,
+          cudaGetErrorString(cudaGetLastError()));
+	if (typeid(VALUETYPE) == typeid(float))
+	  massert(curandGenerateUniform(gen, (float*) vec, length) == cudaSuccess,
+            cudaGetErrorString(cudaGetLastError()));
+	else if (typeid(VALUETYPE) == typeid(double))
+	  massert(curandGenerateUniformDouble(gen, (double*) vec, length) == cudaSuccess,
+            cudaGetErrorString(cudaGetLastError()));
+	cudaCheckErrors();
+    	if (prev_loc != loc){
+		//warning("CoCoVecInit: Reseting device to previous: %d\n", prev_loc);
+		cudaSetDevice(prev_loc);
+	}
+  }
+  cudaCheckErrors();
+}
 
-// template void CoCoVecInit<double>(double *vec, long long length, int seed, short loc);
-// template void CoCoVecInit<float>(float *vec, long long length, int seed, short loc);
+template void CoCoVecInit<double>(double *vec, long long length, int seed, short loc);
+template void CoCoVecInit<float>(float *vec, long long length, int seed, short loc);
 
-// template<typename VALUETYPE>
-// void CoCoParallelVecInitHost(VALUETYPE *vec, long long length, int seed)
-// {
-// 	srand(seed);
-// 	//#pragma omp parallel for
-// 	for (long long i = 0; i < length; i++) vec[i] = (VALUETYPE) Drandom();
-// }
+template<typename VALUETYPE>
+void CoCoParallelVecInitHost(VALUETYPE *vec, long long length, int seed)
+{
+	srand(seed);
+	//#pragma omp parallel for
+	for (long long i = 0; i < length; i++) vec[i] = (VALUETYPE) Drandom();
+}
 
-// template void CoCoParallelVecInitHost<double>(double *vec, long long length, int seed);
-// template void CoCoParallelVecInitHost<float>(float *vec, long long length, int seed);
+template void CoCoParallelVecInitHost<double>(double *vec, long long length, int seed);
+template void CoCoParallelVecInitHost<float>(float *vec, long long length, int seed);
 
-// void CoCoEnableLinks(short target_dev_i, short num_devices){
-// 	short lvl = 2;
-// #ifdef DEBUG
-// 	lprintf(lvl-1, "|-----> CoCoPeLiaEnableGPUPeer(%d,%d)\n", target_dev_i, num_devices);
-// #endif
-// #ifdef TEST
-// 	lprintf(lvl-1, "|-----> CoCoPeLiaEnableGPUPeer\n");
-// 	double cpu_timer = csecond();
-// #endif
-// 	int dev_id_target = deidxize(target_dev_i);
-// 	CoCoPeLiaSelectDevice(dev_id_target);
-// 	for(int j=0; j<num_devices;j++){
-// 		int dev_id_current = deidxize(j);
-// 		if (dev_id_target == dev_id_current || dev_id_target == -1 || dev_id_current == -1) continue;
-// 		int can_access_peer;
-// 		massert(cudaSuccess == cudaDeviceCanAccessPeer(&can_access_peer, dev_id_target, dev_id_current), "CoCopeLiaDgemm: cudaDeviceCanAccessPeer failed\n");
-// 		if(can_access_peer){
-// 			cudaError_t check_peer = cudaDeviceEnablePeerAccess(dev_id_current, 0);
-// 			if(check_peer == cudaSuccess){ ;
-// #ifdef DEBUG
-// 				lprintf(lvl, "Enabled Peer access for dev %d to dev %d\n", dev_id_target, dev_id_current);
-// #endif
-// 			}
-// 			else if (check_peer == cudaErrorPeerAccessAlreadyEnabled){
-// 				cudaGetLastError();
-// #ifdef DEBUG
-// 				lprintf(lvl, "Peer access already enabled for dev %d to dev %d\n", dev_id_target, dev_id_current);
-// #endif
-// 			}
-// 			else error("Enabling Peer access failed for %d to dev %d\n", dev_id_target, dev_id_current);
-// 		}
-// 	}
-// #ifdef TEST
-// 	cpu_timer = csecond() - cpu_timer;
-// 	lprintf(lvl, "Utiilizing Peer access for dev %d -> t_enable =%lf ms\n", dev_id_target, 1000*cpu_timer);
-// 	cpu_timer = csecond();
-// 	lprintf(lvl-1, "<-----|\n");
-// #endif
-// #ifdef DEBUG
-// 	lprintf(lvl-1, "<-----|\n");
-// #endif
-// }
+void CoCoEnableLinks(short target_dev_i, short num_devices){
+	short lvl = 2;
+#ifdef DEBUG
+	lprintf(lvl-1, "|-----> CoCoPeLiaEnableGPUPeer(%d,%d)\n", target_dev_i, num_devices);
+#endif
+#ifdef TEST
+	lprintf(lvl-1, "|-----> CoCoPeLiaEnableGPUPeer\n");
+	double cpu_timer = csecond();
+#endif
+	int dev_id_target = deidxize(target_dev_i);
+	CoCoPeLiaSelectDevice(dev_id_target);
+	for(int j=0; j<num_devices;j++){
+		int dev_id_current = deidxize(j);
+		if (dev_id_target == dev_id_current || dev_id_target == -1 || dev_id_current == -1) continue;
+		int can_access_peer;
+		massert(cudaSuccess == cudaDeviceCanAccessPeer(&can_access_peer, dev_id_target, dev_id_current), "CoCopeLiaDgemm: cudaDeviceCanAccessPeer failed\n");
+		if(can_access_peer){
+			cudaError_t check_peer = cudaDeviceEnablePeerAccess(dev_id_current, 0);
+			if(check_peer == cudaSuccess){ ;
+#ifdef DEBUG
+				lprintf(lvl, "Enabled Peer access for dev %d to dev %d\n", dev_id_target, dev_id_current);
+#endif
+			}
+			else if (check_peer == cudaErrorPeerAccessAlreadyEnabled){
+				cudaGetLastError();
+#ifdef DEBUG
+				lprintf(lvl, "Peer access already enabled for dev %d to dev %d\n", dev_id_target, dev_id_current);
+#endif
+			}
+			else error("Enabling Peer access failed for %d to dev %d\n", dev_id_target, dev_id_current);
+		}
+	}
+#ifdef TEST
+	cpu_timer = csecond() - cpu_timer;
+	lprintf(lvl, "Utiilizing Peer access for dev %d -> t_enable =%lf ms\n", dev_id_target, 1000*cpu_timer);
+	cpu_timer = csecond();
+	lprintf(lvl-1, "<-----|\n");
+#endif
+#ifdef DEBUG
+	lprintf(lvl-1, "<-----|\n");
+#endif
+}
