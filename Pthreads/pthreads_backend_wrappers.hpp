@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <cblas.h>
 #include "cublas_v2.h"
+#include <chrono>
 #include <unihelpers.hpp>
 
 
@@ -42,6 +43,7 @@ typedef struct pthread_event {
     void * taskQueue;
     pthread_t threadId;
     event_status estate;
+	std::chrono::steady_clock::time_point completeTime;
 }* pthread_event_p; 
 
 template<typename VALUETYPE> class gemm_backend_in{

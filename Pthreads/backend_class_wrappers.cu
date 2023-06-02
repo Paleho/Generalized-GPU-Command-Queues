@@ -298,6 +298,7 @@ void CommandQueue::wait_for_event(Event_p Wevent)
 void* eventFunc(void* event_data){
 	pthread_event_p event_p = (pthread_event_p) event_data;
 	event_p->estate = COMPLETE;
+	event_p->completeTime = std::chrono::steady_clock::now();
 
 	return 0;
 }
@@ -490,40 +491,40 @@ void Event::reset(){
 	soft_reset();
 }
 
-// /*****************************************************/
-// /// Event-based timer class functions
+/*****************************************************/
+/// Event-based timer class functions
 
-// Event_timer::Event_timer(int dev_id) {
-//   Event_start = new Event(dev_id);
-//   Event_stop = new Event(dev_id);
-//   time_ms = 0;
-// }
+Event_timer::Event_timer(int dev_id) {
+  Event_start = new Event(dev_id);
+  Event_stop = new Event(dev_id);
+  time_ms = 0;
+}
 
-// void Event_timer::start_point(CQueue_p start_queue)
-// {
-// 	Event_start->record_to_queue(start_queue);
-// }
+void Event_timer::start_point(CQueue_p start_queue)
+{
+	Event_start->record_to_queue(start_queue);
+}
 
-// void Event_timer::stop_point(CQueue_p stop_queue)
-// {
-// 	Event_stop->record_to_queue(stop_queue);
-// }
+void Event_timer::stop_point(CQueue_p stop_queue)
+{
+	Event_stop->record_to_queue(stop_queue);
+}
 
-// double Event_timer::sync_get_time()
-// {
-// 	float temp_t;
-// 	if(Event_start->query_status() != UNRECORDED){
-// 		Event_start->sync_barrier();
-// 		if(Event_stop->query_status() != UNRECORDED) Event_stop->sync_barrier();
-// 		else error("Event_timer::sync_get_time: Event_start is %s but Event_stop still UNRECORDED\n",
-// 			print_event_status(Event_start->query_status()));
-// 		cudaEvent_t cuda_event_start = *(cudaEvent_t*) Event_start->event_backend_ptr;
-// 		cudaEvent_t cuda_event_stop = *(cudaEvent_t*) Event_stop->event_backend_ptr;
-// 		cudaEventElapsedTime(&temp_t, cuda_event_start, cuda_event_stop);
-// 	}
-// 	else temp_t = 0;
-// 	time_ms = (double) temp_t;
-// 	return time_ms;
-// }
+double Event_timer::sync_get_time()
+{
+	if(Event_start->query_status() != UNRECORDED){
+		Event_start->sync_barrier();
+		if(Event_stop->query_status() != UNRECORDED) Event_stop->sync_barrier();
+		else error("Event_timer::sync_get_time: Event_start is %s but Event_stop still UNRECORDED\n",
+			print_event_status(Event_start->query_status()));
+		
+		pthread_event_p start_event = (pthread_event_p) Event_start->event_backend_ptr;
+		pthread_event_p stop_event = (pthread_event_p) Event_stop->event_backend_ptr;
 
-// /*****************************************************/
+		time_ms = (double) std::chrono::duration_cast<std::chrono::milliseconds>(stop_event->completeTime - start_event->completeTime).count();
+	}
+	else time_ms = 0;
+	return time_ms;
+}
+
+/*****************************************************/
