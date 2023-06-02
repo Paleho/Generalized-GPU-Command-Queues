@@ -230,10 +230,12 @@ void CommandQueue::sync_barrier()
 }
 
 void CommandQueue::add_host_func(void* func, void* data){
-	// cout << "CommandQueue::add_host_func: Enter add_host_func -- waiting for unihelpersLock" << endl;
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::add_host_func() getting lock\n", dev_id);
+#endif
 	get_lock();
 #ifdef UDDEBUG
-	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::add_host_func()\n", dev_id);
+	lprintf(lvl, "[dev_id=%3d] ------- CommandQueue::add_host_func()\n", dev_id);
 #endif
 
 	queue<pthread_task_p> * task_queue_p = (queue<pthread_task_p> *)cqueue_backend_ptr;
@@ -263,10 +265,14 @@ void * blockQueue(void * data){
 
 	while(Wevent->query_status() < COMPLETE){
 		;
-		// cout << "blockQueue: waiting for event = "	<< (pthread_event_p) Wevent->event_backend_ptr << " status = " << Wevent->query_status() << endl;
+		#ifdef UDDEBUG
+			lprintf(lvl, "[dev_id=%3d] |-----> blockQueue(Event(%d))\n", Wevent->dev_id, Wevent->id);
+		#endif
 	}
 
-	// cout << "blockQueue: event arrived = "	<< (pthread_event_p) Wevent->event_backend_ptr << " status = " << Wevent->query_status() << endl;
+	#ifdef UDDEBUG
+		lprintf(lvl, "[dev_id=%3d] <-----| blockQueue(Event(%d))\n", Wevent->dev_id, Wevent->id);
+	#endif
 	return 0;
 }
 
@@ -461,6 +467,12 @@ event_status Event::query_status(){
 		
 		if(status == RECORDED && event_p->estate == COMPLETE) status = COMPLETE;
 		local_status = event_p->estate;
+	}
+	else {
+		// local_status == CHECKED
+		// update estate
+		pthread_event_p event_p = (pthread_event_p) event_backend_ptr;
+		event_p->estate = CHECKED;
 	}
 	release_lock();
 #ifdef UDDEBUG
