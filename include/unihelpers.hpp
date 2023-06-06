@@ -43,7 +43,7 @@ typedef class CommandQueue
 		//Destructor
 		~CommandQueue();
 		void sync_barrier();
-		void add_host_func(void* func, void* data);
+		void add_host_func(void* func, void* data, std::string name = "Default_name", std::string caller = __builtin_FUNCTION());
 		void wait_for_event(Event_p Wevent);
 #ifdef ENABLE_PARALLEL_BACKEND
 		int request_parallel_backend();
@@ -94,7 +94,7 @@ class Event
 int CoCoPeLiaGetDevice();
 
 // Select device for current running pthread
-void CoCoPeLiaSelectDevice(short dev_id);
+void CoCoPeLiaSelectDevice(short dev_id, std::string caller = __builtin_FUNCTION());
 
 // Return free memory and total memory for current device
 void CoCoPeLiaDevGetMemInfo(long long* free_dev_mem, long long* max_dev_mem);
