@@ -35,11 +35,12 @@ int CoCoPeLiaGetDevice(){
   return dev_id;
 }
 
-void CoCoPeLiaSelectDevice(short dev_id){
+void CoCoPeLiaSelectDevice(short dev_id, std::string caller){
   int dev_count;
   cudaError_t err = cudaGetDeviceCount(&dev_count);
   if(dev_id >= 0 && dev_id < dev_count){
   cudaError_t err = cudaSetDevice(dev_id);
+  if(cudaSuccess != err) cout << "CoCoPeLiaSelectDevice(): caller function = " << caller << "\n";
   massert(cudaSuccess == err,
     "CoCoPeLiaSelectDevice(%d): cudaSetDevice(%d) failed - %s\n", dev_id, dev_id, cudaGetErrorString(err));
   }

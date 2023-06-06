@@ -220,7 +220,7 @@ void CoCoMemcpyAsync(void* dest, void* src, long long bytes, short loc_dest, sho
 	data->loc_dest = loc_dest;
 	data->loc_src = loc_src;
 
-	transfer_queue->add_host_func((void*) &_CoCoMemcpyAsync, (void*) data);
+	transfer_queue->add_host_func((void*) &_CoCoMemcpyAsync, (void*) data, "_CoCoMemcpyAsync");
 	return;
 }
 
@@ -332,7 +332,7 @@ void CoCoMemcpy2DAsync(void* dest, long int ldest, void* src, long int ldsrc, lo
 	data->loc_dest = loc_dest;
 	data->loc_src = loc_src;
 
-	transfer_queue->add_host_func((void*) &_CoCoMemcpy2DAsync, (void*) data);
+	transfer_queue->add_host_func((void*) &_CoCoMemcpy2DAsync, (void*) data, "_CoCoMemcpy2DAsync");
 
 	return;
 }

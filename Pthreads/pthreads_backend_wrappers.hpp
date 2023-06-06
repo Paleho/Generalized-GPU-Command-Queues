@@ -32,6 +32,7 @@ inline void release_lock_q(int * lock){
 typedef struct pthread_task { 
     void* func; 
     void* data; 
+	std::string function_name;
 }* pthread_task_p; 
 
 typedef struct queue_data { 
