@@ -249,7 +249,7 @@ void Subkernel::request_tile_hops(short TileIdx){
 						wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 						wrap_inval->lockfree = false;
 						wrap_inval->CBlock = block_ptr[inter_hop];
-						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap");
+						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 1");
 					}
 				//}
 			}
@@ -406,7 +406,7 @@ void Subkernel::request_tile_hops(short TileIdx){
 						wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 						wrap_inval->lockfree = false;
 						wrap_inval->CBlock = block_ptr[inter_hop];
-						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap");
+						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 2");
 					}
 				//}
 			}
@@ -978,7 +978,7 @@ void Subkernel::writeback_data_hops(){
 						wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 						wrap_inval->lockfree = false;
 						wrap_inval->CBlock = block_ptr[inter_hop];
-						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap");
+						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 3");
 					}
 				}
 
@@ -990,7 +990,7 @@ void Subkernel::writeback_data_hops(){
 				wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 				wrap_inval->CBlock = tmp->StoreBlock[run_dev_id_idx];
 				wrap_inval->lockfree = false;
-				used_queue->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap");
+				used_queue->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 4");
 			}
 		}
 		else if (TileDimlist[j] == 2){
@@ -1100,7 +1100,7 @@ void Subkernel::writeback_data_hops(){
 						wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 						wrap_inval->lockfree = false;
 						wrap_inval->CBlock = block_ptr[inter_hop];
-						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap");
+						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 5");
 					}
 				}
 
@@ -1112,7 +1112,7 @@ void Subkernel::writeback_data_hops(){
 				wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 				wrap_inval->CBlock = tmp->StoreBlock[run_dev_id_idx];
 				wrap_inval->lockfree = false;
-				used_queue->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap");
+				used_queue->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 6");
 			}
 		}
 		else error("Subkernel(dev=%d,id=%d)::writeback_data_hops: Not implemented for TileDim=%d\n", run_dev_id, id, TileDimlist[j]);
@@ -1195,7 +1195,7 @@ void Subkernel::writeback_data(){
 				wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 				wrap_inval->CBlock = tmp->StoreBlock[run_dev_id_idx];
 				wrap_inval->lockfree = false;
-				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap");
+				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 7");
 			}
 		}
 		else if (TileDimlist[j] == 2){
@@ -1247,7 +1247,7 @@ void Subkernel::writeback_data(){
 				wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 				wrap_inval->CBlock = tmp->StoreBlock[run_dev_id_idx];
 				wrap_inval->lockfree = false;
-				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap");
+				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 8");
 			}
 		}
 		else error("Subkernel(dev=%d,id=%d)::writeback_data: Not implemented for TileDim=%d\n", run_dev_id, id, TileDimlist[j]);
