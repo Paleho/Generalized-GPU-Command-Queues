@@ -14,7 +14,7 @@
 
 using namespace std;
 
-#define STREAM_POOL_SZ 16
+#define STREAM_POOL_SZ 1
 
 // Queue lock
 inline void get_lock_q(int * lock){
