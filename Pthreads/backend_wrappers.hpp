@@ -6,13 +6,10 @@
 
 #include <cuda.h>
 #include <pthread.h>
-#include <cblas.h>
 #include "cublas_v2.h"
 #include <chrono>
 #include <unihelpers.hpp>
 
-
-using namespace std;
 
 #define STREAM_POOL_SZ 1
 
@@ -94,6 +91,29 @@ typedef struct wider_backend_in{
 /// Select and run a wrapped operation (e.g. gemm, axpy) depending on opname
 void backend_run_operation(void* backend_data, const char* opname, CQueue_p run_queue);
 
+#ifdef MULTIDEVICE_REDUCTION_ENABLE
+
+// Asunchronous 2D Memcpy in internal buffer AND reduce to dest between two locations WITHOUT synchronous errorchecking. Use with caution.
+void CoCoMemcpyReduce2DAsync(void* reduce_buffer, short reduce_buf_it, void* dest, long int ldest, void* src, long int lsrc, long int rows, long int cols,
+	short elemSize, short loc_dest, short loc_src, void* Tile_lock, CQueue_p src_reduce_queue, CQueue_p dest_reduce_queue);
+
+// Asunchronous Memcpy in internal buffer AND reduce to dest between two locations WITHOUT synchronous errorchecking. Use with caution.
+void CoCoMemcpyReduceAsync(void* reduce_buffer, short reduce_buf_it, void* dest, void* src, long long bytes,
+	short loc_dest, short loc_src, void* Tile_lock, CQueue_p src_reduce_queue, CQueue_p dest_reduce_queue);
+
+// Blocks until all reduce threads are complete and free temp structs.
+void CoCoReduceSyncThreads();
+
+/// Asunchronous add 2D (for block reduce)
+template<typename VALUETYPE>
+void CoCoAdd2Dc(VALUETYPE* dest, long int ldest, VALUETYPE* src, long int lsrc,
+	long int rows, long int cols, short loc, CQueue_p add_queue);
+
+#endif
+
+#ifdef BUILD_BLAS_WRAPPERS_FLAG
+#include <cblas.h>
+
 void TransposeTranslate(char TransChar, CBLAS_TRANSPOSE* cblasFlag, cublasOperation_t* cuBLASFlag, long int* ldim, long int dim1, long int dim2);
 
 cublasOperation_t OpCblasToCublas(CBLAS_TRANSPOSE src);
@@ -101,6 +121,8 @@ CBLAS_TRANSPOSE OpCublasToCblas(cublasOperation_t src);
 cublasOperation_t OpCharToCublas(char src);
 CBLAS_TRANSPOSE OpCharToCblas(char src);
 char PrintCublasOp(cublasOperation_t src);
+
+#endif
 
 /// Internally used utils TODO: Is this the correct way softeng wise?
 void cudaCheckErrors();

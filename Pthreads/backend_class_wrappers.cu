@@ -58,12 +58,12 @@ void* taskExecLoop(void * args)
 {
 	// extract queue and lock from data
 	queue_data_p thread_data = (queue_data_p) args;
-	queue<pthread_task_p>* task_queue_p = (queue<pthread_task_p>* )thread_data->taskQueue;
+	std::queue<pthread_task_p>* task_queue_p = (std::queue<pthread_task_p>* )thread_data->taskQueue;
 
 	while(1){
-		// std::cout << "taskExecLoop: Thread " << thread_data->threadId << " waiting for queueLock" << endl;
+		// std::cout << "taskExecLoop: Thread " << thread_data->threadId << " waiting for queueLock" << std::endl;
 		get_lock_q(&thread_data->queueLock);
-		// std::cout << "taskExecLoop: Thread " << thread_data->threadId << " got queueLock" << endl;
+		// std::cout << "taskExecLoop: Thread " << thread_data->threadId << " got queueLock" << std::endl;
 		if(thread_data->terminate){
 			release_lock_q(&thread_data->queueLock);
 			break;
@@ -76,9 +76,9 @@ void* taskExecLoop(void * args)
 			pthread_task_p curr_task_p = task_queue_p->front();
 			release_lock_q(&thread_data->queueLock);
 
-			// std::cout << "taskExecLoop: Thread " << thread_data->threadId << " -- Got task = " << curr_task_p << endl;
+			// std::cout << "taskExecLoop: Thread " << thread_data->threadId << " -- Got task = " << curr_task_p << std::endl;
 
-			// std::cout << "taskExecLoop: about to release lock with value = " << thread_data->queueLock << endl;
+			// std::cout << "taskExecLoop: about to release lock with value = " << thread_data->queueLock << std::endl;
 
 			if(curr_task_p){
 				// execute task
@@ -108,11 +108,11 @@ void* taskExecLoop(void * args)
 					std::cout << errorMsg.str();
 				}
 				release_lock_q(&thread_data->queueLock);
-				// std::cout << "taskExecLoop: Thread " << thread_data->threadId << " -- Executed task = " << curr_task_p << endl;
+				// std::cout << "taskExecLoop: Thread " << thread_data->threadId << " -- Executed task = " << curr_task_p << std::endl;
 
 				// delete task
 				delete(curr_task_p);
-				// std::cout << "taskExecLoop: Thread " << thread_data->threadId << " -- Deleted task = " << endl;
+				// std::cout << "taskExecLoop: Thread " << thread_data->threadId << " -- Deleted task = " << std::endl;
 			}
 			else{
 				// This should not happen
@@ -162,7 +162,7 @@ CommandQueue::CommandQueue(int dev_id_in)
 		"CommandQueue::CommandQueue(%d): cublasCreate failed\n", dev_id);
 
 
-	queue<pthread_task_p>* task_queue = new queue<pthread_task_p>;
+	std::queue<pthread_task_p>* task_queue = new std::queue<pthread_task_p>;
 	cqueue_backend_ptr = (void *) task_queue;
 	queue_data_p data = new queue_data;
 	
@@ -175,9 +175,9 @@ CommandQueue::CommandQueue(int dev_id_in)
 	cqueue_backend_data = (void*) data;
 
 	// Spawn thread that loops over queue and executes tasks
-	if(pthread_create(&(data->threadId), NULL, taskExecLoop, data)) std::cout << "Error: CommandQueue::CommandQueue: pthread_create failed" << endl;
+	if(pthread_create(&(data->threadId), NULL, taskExecLoop, data)) std::cout << "Error: CommandQueue::CommandQueue: pthread_create failed" << std::endl;
 
-	// std::cout << "CommandQueue::CommandQueue: Queue constructor complete. Thread id = " << data->threadId << endl;
+	// std::cout << "CommandQueue::CommandQueue: Queue constructor complete. Thread id = " << data->threadId << std::endl;
 
 	CoCoPeLiaSelectDevice(prev_dev_id);
 #ifdef UDDEBUG
@@ -190,7 +190,7 @@ CommandQueue::~CommandQueue()
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::~CommandQueue()\n", dev_id);
 #endif
-	// std::cout << "CommandQueue::~CommandQueue: Enter Queue destructor" << endl;
+	// std::cout << "CommandQueue::~CommandQueue: Enter Queue destructor" << std::endl;
 	sync_barrier();
 	CoCoPeLiaSelectDevice(dev_id);
 	queue_data_p backend_d = (queue_data_p) cqueue_backend_data;
@@ -198,14 +198,14 @@ CommandQueue::~CommandQueue()
 		massert(cudaSuccess == cudaStreamQuery(backend_d->stream_pool[i]), "CommandQueue::~CommandQueue: Found stream with pending work\n");
 	}
 
-	// std::cout << "CommandQueue::~CommandQueue  waiting for queueLock" << endl;
+	// std::cout << "CommandQueue::~CommandQueue  waiting for queueLock" << std::endl;
 	get_lock_q(&backend_d->queueLock);
 	backend_d->terminate = true;
 	release_lock_q(&backend_d->queueLock);
 
-	if(pthread_join(backend_d->threadId, NULL)) std::cout << "Error: CommandQueue::~CommandQueue: pthread_join failed" << endl;
+	if(pthread_join(backend_d->threadId, NULL)) std::cout << "Error: CommandQueue::~CommandQueue: pthread_join failed" << std::endl;
 
-	queue<pthread_task_p> * task_queue_p = (queue<pthread_task_p> *)cqueue_backend_ptr;
+	std::queue<pthread_task_p> * task_queue_p = (std::queue<pthread_task_p> *)cqueue_backend_ptr;
 
 	for(int i = 0; i < STREAM_POOL_SZ; i++){
 		massert(cudaSuccess == cudaStreamQuery(backend_d->stream_pool[i]), "About to destroy stream with pending work\n");
@@ -218,7 +218,7 @@ CommandQueue::~CommandQueue()
 	delete(task_queue_p);
 	delete(backend_d);
 
-	// std::cout << "CommandQueue::~CommandQueue: Queue destructor complete" << endl;
+	// std::cout << "CommandQueue::~CommandQueue: Queue destructor complete" << std::endl;
 
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::~CommandQueue()\n", dev_id);
@@ -232,9 +232,9 @@ void CommandQueue::sync_barrier()
 	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::sync_barrier()\n", dev_id);
 #endif
 
-	// std::cout << "CommandQueue::sync_barrier: Enter sync_barrier" << endl;
+	// std::cout << "CommandQueue::sync_barrier: Enter sync_barrier" << std::endl;
 
-	queue<pthread_task_p> * task_queue_p = (queue<pthread_task_p> *)cqueue_backend_ptr;
+	std::queue<pthread_task_p> * task_queue_p = (std::queue<pthread_task_p> *)cqueue_backend_ptr;
 	queue_data_p backend_d = (queue_data_p) cqueue_backend_data;
 
 	bool queueIsBusy = true;
@@ -249,7 +249,7 @@ void CommandQueue::sync_barrier()
 		release_lock_q(&backend_d->queueLock);
 	}
 
-	// std::cout << "CommandQueue::sync_barrier: sync_barrier complete" << endl;
+	// std::cout << "CommandQueue::sync_barrier: sync_barrier complete" << std::endl;
 
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::sync_barrier()\n", dev_id);
@@ -265,7 +265,7 @@ void CommandQueue::add_host_func(void* func, void* data, std::string name, std::
 	lprintf(lvl, "[dev_id=%3d] ------- CommandQueue::add_host_func()\n", dev_id);
 #endif
 
-	queue<pthread_task_p> * task_queue_p = (queue<pthread_task_p> *)cqueue_backend_ptr;
+	std::queue<pthread_task_p> * task_queue_p = (std::queue<pthread_task_p> *)cqueue_backend_ptr;
 	pthread_task_p task_p = new pthread_task;
 	task_p->func = func;
 	task_p->data = data;
@@ -274,14 +274,14 @@ void CommandQueue::add_host_func(void* func, void* data, std::string name, std::
 
 	queue_data_p backend_d = (queue_data_p) cqueue_backend_data;
 
-	// std::cout << "CommandQueue::add_host_func: waiting for queueLock" << endl;
+	// std::cout << "CommandQueue::add_host_func: waiting for queueLock" << std::endl;
 	get_lock_q(&backend_d->queueLock);
 	task_queue_p->push(task_p);
 	release_lock_q(&backend_d->queueLock);
 
 	release_lock();
 
-	// std::cout << "CommandQueue::add_host_func: add_host_func complete" << endl;
+	// std::cout << "CommandQueue::add_host_func: add_host_func complete" << std::endl;
 
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::add_host_func()\n", dev_id);
@@ -289,7 +289,7 @@ void CommandQueue::add_host_func(void* func, void* data, std::string name, std::
 }
 
 void * blockQueue(void * data){
-	// std::cout << "blockQueue: Start" << endl;
+	// std::cout << "blockQueue: Start" << std::endl;
 	Event_p Wevent = (Event_p) data;
 
 	while(Wevent->query_status() < COMPLETE){
@@ -342,7 +342,7 @@ Event::Event(int dev_id_in)
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::Event()\n", dev_id_in, Event_num_device[idxize(dev_id_in)]);
 #endif
-	// std::cout << "Event::Event: waiting for unihelpersLock" << endl;
+	// std::cout << "Event::Event: waiting for unihelpersLock" << std::endl;
 	get_lock();
 	id = Event_num_device[idxize(dev_id_in)];
 	Event_num_device[idxize(dev_id_in)]++;
@@ -364,7 +364,7 @@ Event::~Event()
 	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::~Event()\n", dev_id, id);
 #endif
 	sync_barrier();
-	// std::cout << "Event::~Event: waiting for unihelpersLock" << endl;
+	// std::cout << "Event::~Event: waiting for unihelpersLock" << std::endl;
 	get_lock();
 	if (dev_id < -1) 	Event_num_device[idxize(dev_id+42)]--;
 	else Event_num_device[idxize(dev_id)]--;
@@ -472,7 +472,7 @@ void Event::record_to_queue(CQueue_p Rr){
 	}
 	release_lock();
 
-	// std::cout << "Event::record_to_queue: event " << event_p << "recorded" << endl;
+	// std::cout << "Event::record_to_queue: event " << event_p << "recorded" << std::endl;
 	Rr->add_host_func((void*) &eventFunc, (void*) event_p, "eventFunc");
 
 #ifdef UDDEBUG
@@ -484,7 +484,7 @@ event_status Event::query_status(){
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::query_status()\n", dev_id, id);
 #endif
-	// std::cout << "Event::query_status: waiting for unihelpersLock" << endl;
+	// std::cout << "Event::query_status: waiting for unihelpersLock" << std::endl;
 	get_lock();
 	enum event_status local_status = status;
 	if (local_status != CHECKED){
