@@ -166,7 +166,7 @@ void CommandQueue::sync_barrier()
 #endif
 }
 
-void CommandQueue::add_host_func(void* func, void* data){
+void CommandQueue::add_host_func(void* func, void* data, std::string name, std::string caller){
 	get_lock();
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::add_host_func()\n", dev_id);

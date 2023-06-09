@@ -156,7 +156,7 @@ void Subkernel::request_tile_hops(short TileIdx){
 				run_dev_id, FetchFromId, used_queue);
 
 #ifdef STEST
-			used_queue->add_host_func((void*)&CoCoSetTimerAsync, (void*) &reqT_end_ts[TileIdx], "CoCoSetTimerAsync");
+			used_queue->add_host_func((void*)&CoCoSetTimerAsync, (void*) &reqT_end_ts[TileIdx]);
 			bytes_in[TileIdx]= tmp->size();
 			dev_in_from[TileIdx] = FetchFromId;
 			dev_in_to[TileIdx] = run_dev_id;
@@ -249,7 +249,7 @@ void Subkernel::request_tile_hops(short TileIdx){
 						wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 						wrap_inval->lockfree = false;
 						wrap_inval->CBlock = block_ptr[inter_hop];
-						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 1");
+						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval);
 					}
 				//}
 			}
@@ -259,13 +259,13 @@ void Subkernel::request_tile_hops(short TileIdx){
 			wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 			wrap_inval->lockfree = false;
 			wrap_inval->CBlock = tmp->StoreBlock[FetchFromId_idx];
-			used_queue->add_host_func((void*)&CBlock_RR_INV_wrap, (void*) wrap_inval, "CBlock_RR_INV_wrap");
+			used_queue->add_host_func((void*)&CBlock_RR_INV_wrap, (void*) wrap_inval);
 		}
 		else{
 			wrap_read = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 			wrap_read->CBlock = tmp->StoreBlock[FetchFromId_idx];
 			wrap_read->lockfree = false;
-			used_queue->add_host_func((void*)&CBlock_RR_wrap, (void*) wrap_read, "CBlock_RR_wrap");
+			used_queue->add_host_func((void*)&CBlock_RR_wrap, (void*) wrap_read);
 		}
 		tmp->StoreBlock[run_dev_id_idx]->Available->record_to_queue(used_queue);
 	}
@@ -313,7 +313,7 @@ void Subkernel::request_tile_hops(short TileIdx){
 										tmp->dim1, tmp->dim2, tmp->dtypesize(),
 										run_dev_id, FetchFromId, used_queue);
 #ifdef STEST
-			used_queue->add_host_func((void*)&CoCoSetTimerAsync, (void*) &reqT_end_ts[TileIdx], "CoCoSetTimerAsync");
+			used_queue->add_host_func((void*)&CoCoSetTimerAsync, (void*) &reqT_end_ts[TileIdx]);
 			bytes_in[TileIdx]= tmp->size();
 			dev_in_from[TileIdx] = FetchFromId;
 			dev_in_to[TileIdx] = run_dev_id;
@@ -406,7 +406,7 @@ void Subkernel::request_tile_hops(short TileIdx){
 						wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 						wrap_inval->lockfree = false;
 						wrap_inval->CBlock = block_ptr[inter_hop];
-						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 2");
+						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval);
 					}
 				//}
 			}
@@ -416,13 +416,13 @@ void Subkernel::request_tile_hops(short TileIdx){
 			wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 			wrap_inval->lockfree = false;
 			wrap_inval->CBlock = tmp->StoreBlock[FetchFromId_idx];
-			used_queue->add_host_func((void*)&CBlock_RR_INV_wrap, (void*) wrap_inval, "CBlock_RR_INV_wrap");
+			used_queue->add_host_func((void*)&CBlock_RR_INV_wrap, (void*) wrap_inval);
 		}
 		else{
 			wrap_read = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 			wrap_read->CBlock = tmp->StoreBlock[FetchFromId_idx];
 			wrap_read->lockfree = false;
-			used_queue->add_host_func((void*)&CBlock_RR_wrap, (void*) wrap_read, "CBlock_RR_wrap");
+			used_queue->add_host_func((void*)&CBlock_RR_wrap, (void*) wrap_read);
 		}
 		tmp->StoreBlock[run_dev_id_idx]->Available->record_to_queue(used_queue);
 	}
@@ -470,7 +470,7 @@ void Subkernel::request_tile(short TileIdx){
 											((long long) tmp->inc[run_dev_id_idx]) * tmp->dim * tmp->dtypesize(),
 											run_dev_id, FetchFromId, recv_queues[run_dev_id_idx][FetchFromId_idx]);
 #ifdef STEST
-		recv_queues[run_dev_id_idx][FetchFromId_idx]->add_host_func((void*)&CoCoSetTimerAsync, (void*) &reqT_end_ts[TileIdx], "CoCoSetTimerAsync");
+		recv_queues[run_dev_id_idx][FetchFromId_idx]->add_host_func((void*)&CoCoSetTimerAsync, (void*) &reqT_end_ts[TileIdx]);
 		bytes_in[TileIdx] = tmp->size();
 		dev_in_from[TileIdx] = FetchFromId;
 		dev_in_to[TileIdx] = run_dev_id;
@@ -481,14 +481,14 @@ void Subkernel::request_tile(short TileIdx){
 				wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 				wrap_inval->CBlock = tmp->StoreBlock[FetchFromId_idx];
 				wrap_inval->lockfree = false;
-				recv_queues[run_dev_id_idx][FetchFromId_idx]->add_host_func((void*)&CBlock_RR_INV_wrap, (void*) wrap_inval, "CBlock_RR_INV_wrap");
+				recv_queues[run_dev_id_idx][FetchFromId_idx]->add_host_func((void*)&CBlock_RR_INV_wrap, (void*) wrap_inval);
 			//}
 		}
 		else{
 			wrap_read = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 			wrap_read->CBlock = tmp->StoreBlock[FetchFromId_idx];
 			wrap_read->lockfree = false;
-			recv_queues[run_dev_id_idx][FetchFromId_idx]->add_host_func((void*)&CBlock_RR_wrap, (void*) wrap_read, "CBlock_RR_wrap");
+			recv_queues[run_dev_id_idx][FetchFromId_idx]->add_host_func((void*)&CBlock_RR_wrap, (void*) wrap_read);
 		}
 		tmp->StoreBlock[run_dev_id_idx]->Available->record_to_queue(recv_queues[run_dev_id_idx][FetchFromId_idx]);
 	}
@@ -529,7 +529,7 @@ void Subkernel::request_tile(short TileIdx){
 									tmp->dim1, tmp->dim2, tmp->dtypesize(),
 									run_dev_id, FetchFromId, recv_queues[run_dev_id_idx][FetchFromId_idx]);
 #ifdef STEST
-		recv_queues[run_dev_id_idx][FetchFromId_idx]->add_host_func((void*)&CoCoSetTimerAsync, (void*) &reqT_end_ts[TileIdx], "CoCoSetTimerAsync");
+		recv_queues[run_dev_id_idx][FetchFromId_idx]->add_host_func((void*)&CoCoSetTimerAsync, (void*) &reqT_end_ts[TileIdx]);
 		bytes_in[TileIdx]= tmp->size();
 		dev_in_from[TileIdx] = FetchFromId;
 		dev_in_to[TileIdx] = run_dev_id;
@@ -540,14 +540,14 @@ void Subkernel::request_tile(short TileIdx){
 				wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 				wrap_inval->CBlock = tmp->StoreBlock[FetchFromId_idx];
 				wrap_inval->lockfree = false;
-				recv_queues[run_dev_id_idx][FetchFromId_idx]->add_host_func((void*)&CBlock_RR_INV_wrap, (void*) wrap_inval, "CBlock_RR_INV_wrap");
+				recv_queues[run_dev_id_idx][FetchFromId_idx]->add_host_func((void*)&CBlock_RR_INV_wrap, (void*) wrap_inval);
 			//}
 		}
 		else{
 			wrap_read = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 			wrap_read->CBlock = tmp->StoreBlock[FetchFromId_idx];
 			wrap_read->lockfree = false;
-			recv_queues[run_dev_id_idx][FetchFromId_idx]->add_host_func((void*)&CBlock_RR_wrap, (void*) wrap_read, "CBlock_RR_wrap");
+			recv_queues[run_dev_id_idx][FetchFromId_idx]->add_host_func((void*)&CBlock_RR_wrap, (void*) wrap_read);
 		}
 		tmp->StoreBlock[run_dev_id_idx]->Available->record_to_queue(recv_queues[run_dev_id_idx][FetchFromId_idx]);
 	}
@@ -779,7 +779,7 @@ void Subkernel::run_operation(){
 	}
 #ifdef STEST
 		exec_queue[run_dev_id_idx]->add_host_func(
-				(void*)&CoCoSetTimerAsync, (void*) &op_start_ts, "CoCoSetTimerAsync");
+				(void*)&CoCoSetTimerAsync, (void*) &op_start_ts);
 		if (!strcmp(op_name,"dgemm")){
 			gemm_backend_in<double>* ptr_ker_translate = (gemm_backend_in<double>*) operation_params;
 			flops = gemm_flops(ptr_ker_translate->M, ptr_ker_translate->N, ptr_ker_translate->K);
@@ -796,7 +796,7 @@ void Subkernel::run_operation(){
 	backend_run_operation(operation_params, op_name, exec_queue[run_dev_id_idx]);
 #ifdef STEST
 	exec_queue[run_dev_id_idx]->add_host_func(
-			(void*)&CoCoSetTimerAsync, (void*) &op_end_ts, "CoCoSetTimerAsync");
+			(void*)&CoCoSetTimerAsync, (void*) &op_end_ts);
 #endif
 	for (int j = 0; j < TileNum; j++){
 		if (TileDimlist[j] == 1){
@@ -816,13 +816,13 @@ void Subkernel::run_operation(){
 				tmp->W_flag--;
 				if(!tmp->W_flag) WR_last[j] = 1;
 				else{
-					exec_queue[run_dev_id_idx]->add_host_func((void*)&CBlock_RW_wrap, (void*) wrap_oper, "CBlock_RW_wrap");
+					exec_queue[run_dev_id_idx]->add_host_func((void*)&CBlock_RW_wrap, (void*) wrap_oper);
 					Ptr_atomic_int_p wrapped_op = (Ptr_atomic_int_p) malloc(sizeof(struct Ptr_atomic_int));
 					wrapped_op->ato_int_ptr = &tmp->RW_lock_holders;
-					exec_queue[run_dev_id_idx]->add_host_func((void*)&CoCoDecAsync, (void*) wrapped_op, "CoCoDecAsync");
+					exec_queue[run_dev_id_idx]->add_host_func((void*)&CoCoDecAsync, (void*) wrapped_op);
 				}
 			}
-			else exec_queue[run_dev_id_idx]->add_host_func((void*)&CBlock_RR_wrap, (void*) wrap_oper, "CBlock_RR_wrap");
+			else exec_queue[run_dev_id_idx]->add_host_func((void*)&CBlock_RR_wrap, (void*) wrap_oper);
 
 		}
 		else if (TileDimlist[j] == 2){
@@ -842,13 +842,13 @@ void Subkernel::run_operation(){
 				tmp->W_flag--;
 				if(!tmp->W_flag) WR_last[j] = 1;
 				else{
-					exec_queue[run_dev_id_idx]->add_host_func((void*)&CBlock_RW_wrap, (void*) wrap_oper, "CBlock_RW_wrap");
+					exec_queue[run_dev_id_idx]->add_host_func((void*)&CBlock_RW_wrap, (void*) wrap_oper);
 					Ptr_atomic_int_p wrapped_op = (Ptr_atomic_int_p) malloc(sizeof(struct Ptr_atomic_int));
 					wrapped_op->ato_int_ptr = &tmp->RW_lock_holders;
-					exec_queue[run_dev_id_idx]->add_host_func((void*)&CoCoDecAsync, (void*) wrapped_op, "CoCoDecAsync");
+					exec_queue[run_dev_id_idx]->add_host_func((void*)&CoCoDecAsync, (void*) wrapped_op);
 				}
 			}
-			else exec_queue[run_dev_id_idx]->add_host_func((void*)&CBlock_RR_wrap, (void*) wrap_oper, "CBlock_RR_wrap");
+			else exec_queue[run_dev_id_idx]->add_host_func((void*)&CBlock_RR_wrap, (void*) wrap_oper);
 
 		}
 	}
@@ -901,7 +901,7 @@ void Subkernel::writeback_data_hops(){
 					wb_queues[Writeback_id_idx][run_dev_id_idx]->wait_for_event(operation_complete);
 #ifdef STEST
 					wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func(
-						(void*)&CoCoSetTimerAsync, (void*) &(wbT_start_ts[j]), "CoCoSetTimerAsync");
+						(void*)&CoCoSetTimerAsync, (void*) &(wbT_start_ts[j]));
 					//CoCoSetTimerAsync((void*) &(wbT_start_ts[j]);
 #endif
 					used_queue = wb_queues[Writeback_id_idx][run_dev_id_idx];
@@ -910,7 +910,7 @@ void Subkernel::writeback_data_hops(){
 						Writeback_id, run_dev_id, wb_queues[Writeback_id_idx][run_dev_id_idx]);
 #ifdef STEST
 					wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func(
-							(void*)&CoCoSetTimerAsync, (void*) &(wbT_end_ts[j]), "CoCoSetTimerAsync");
+							(void*)&CoCoSetTimerAsync, (void*) &(wbT_end_ts[j]));
 					bytes_out[j]= tmp->size();
 					dev_out_from[j] = run_dev_id;
 					dev_out_to[j] = Writeback_id;
@@ -955,7 +955,7 @@ void Subkernel::writeback_data_hops(){
 					test_road->hop_event_list[inter_hop_num]->reset();
 #ifdef STEST
 					used_queue->add_host_func(
-						(void*)&CoCoSetTimerAsync, (void*) &(wbT_start_ts[j]), "CoCoSetTimerAsync");
+						(void*)&CoCoSetTimerAsync, (void*) &(wbT_start_ts[j]));
 					//CoCoSetTimerAsync((void*) &(wbT_start_ts[j]);
 #endif
 #ifdef DPDEBUG
@@ -968,7 +968,7 @@ void Subkernel::writeback_data_hops(){
 					FasTCoCoMemcpy2DAsync(test_road, tmp->dim, 1, tmp->dtypesize());
 #ifdef STEST
 				used_queue->add_host_func(
-						(void*)&CoCoSetTimerAsync, (void*) &(wbT_end_ts[j]), "CoCoSetTimerAsync");
+						(void*)&CoCoSetTimerAsync, (void*) &(wbT_end_ts[j]));
 				bytes_out[j]= tmp->size();
 				dev_out_from[j] = run_dev_id;
 				dev_out_to[j] = Writeback_id;
@@ -978,19 +978,19 @@ void Subkernel::writeback_data_hops(){
 						wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 						wrap_inval->lockfree = false;
 						wrap_inval->CBlock = block_ptr[inter_hop];
-						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 3");
+						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval);
 					}
 				}
 
 				Ptr_atomic_int_p wrapped_op = (Ptr_atomic_int_p) malloc(sizeof(struct Ptr_atomic_int));
 				wrapped_op->ato_int_ptr = &tmp->RW_lock_holders;
-				used_queue->add_host_func((void*)&CoCoDecAsync, (void*) wrapped_op, "CoCoDecAsync");
+				used_queue->add_host_func((void*)&CoCoDecAsync, (void*) wrapped_op);
 
 				CBlock_wrap_p wrap_inval = NULL;
 				wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 				wrap_inval->CBlock = tmp->StoreBlock[run_dev_id_idx];
 				wrap_inval->lockfree = false;
-				used_queue->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 4");
+				used_queue->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval);
 			}
 		}
 		else if (TileDimlist[j] == 2){
@@ -1022,7 +1022,7 @@ void Subkernel::writeback_data_hops(){
 					wb_queues[Writeback_id_idx][run_dev_id_idx]->wait_for_event(operation_complete);
 #ifdef STEST
 					wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func(
-						(void*)&CoCoSetTimerAsync, (void*) &(wbT_start_ts[j]), "CoCoSetTimerAsync");
+						(void*)&CoCoSetTimerAsync, (void*) &(wbT_start_ts[j]));
 					//CoCoSetTimerAsync((void*) &(wbT_start_ts[j]);
 #endif
 					used_queue = wb_queues[Writeback_id_idx][run_dev_id_idx];
@@ -1032,7 +1032,7 @@ void Subkernel::writeback_data_hops(){
 						Writeback_id, run_dev_id, wb_queues[Writeback_id_idx][run_dev_id_idx]);
 #ifdef STEST
 					wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func(
-							(void*)&CoCoSetTimerAsync, (void*) &(wbT_end_ts[j]), "CoCoSetTimerAsync");
+							(void*)&CoCoSetTimerAsync, (void*) &(wbT_end_ts[j]));
 					bytes_out[j]= tmp->size();
 					dev_out_from[j] = run_dev_id;
 					dev_out_to[j] = Writeback_id;
@@ -1077,7 +1077,7 @@ void Subkernel::writeback_data_hops(){
 					test_road->hop_event_list[inter_hop_num]->reset();
 #ifdef STEST
 					used_queue->add_host_func(
-						(void*)&CoCoSetTimerAsync, (void*) &(wbT_start_ts[j]), "CoCoSetTimerAsync");
+						(void*)&CoCoSetTimerAsync, (void*) &(wbT_start_ts[j]));
 					//CoCoSetTimerAsync((void*) &(wbT_start_ts[j]);
 #endif
 #ifdef DPDEBUG
@@ -1090,7 +1090,7 @@ void Subkernel::writeback_data_hops(){
 					FasTCoCoMemcpy2DAsync(test_road, tmp->dim1, tmp->dim2, tmp->dtypesize());
 #ifdef STEST
 				used_queue->add_host_func(
-						(void*)&CoCoSetTimerAsync, (void*) &(wbT_end_ts[j]), "CoCoSetTimerAsync");
+						(void*)&CoCoSetTimerAsync, (void*) &(wbT_end_ts[j]));
 				bytes_out[j]= tmp->size();
 				dev_out_from[j] = run_dev_id;
 				dev_out_to[j] = Writeback_id;
@@ -1100,19 +1100,19 @@ void Subkernel::writeback_data_hops(){
 						wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 						wrap_inval->lockfree = false;
 						wrap_inval->CBlock = block_ptr[inter_hop];
-						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 5");
+						test_road->hop_cqueue_list[inter_hop+1]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval);
 					}
 				}
 
 				Ptr_atomic_int_p wrapped_op = (Ptr_atomic_int_p) malloc(sizeof(struct Ptr_atomic_int));
 				wrapped_op->ato_int_ptr = &tmp->RW_lock_holders;
-				used_queue->add_host_func((void*)&CoCoDecAsync, (void*) wrapped_op, "CoCoDecAsync");
+				used_queue->add_host_func((void*)&CoCoDecAsync, (void*) wrapped_op);
 
 				CBlock_wrap_p wrap_inval = NULL;
 				wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 				wrap_inval->CBlock = tmp->StoreBlock[run_dev_id_idx];
 				wrap_inval->lockfree = false;
-				used_queue->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 6");
+				used_queue->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval);
 			}
 		}
 		else error("Subkernel(dev=%d,id=%d)::writeback_data_hops: Not implemented for TileDim=%d\n", run_dev_id, id, TileDimlist[j]);
@@ -1174,7 +1174,7 @@ void Subkernel::writeback_data(){
 						run_dev_id, id, tmp->id, tmp->GridId, j, print_state(prev_state));
 #ifdef STEST
 				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func(
-						(void*)&CoCoSetTimerAsync, (void*) &(wbT_start_ts[j]), "CoCoSetTimerAsync");
+						(void*)&CoCoSetTimerAsync, (void*) &(wbT_start_ts[j]));
 				//CoCoSetTimerAsync((void*) &(wbT_start_ts[j]));
 #endif
 				CoCoMemcpyAsync(tmp->WriteBackBlock->Adrs, tmp->StoreBlock[run_dev_id_idx]->Adrs,
@@ -1182,20 +1182,20 @@ void Subkernel::writeback_data(){
 					Writeback_id, run_dev_id, wb_queues[Writeback_id_idx][run_dev_id_idx]);
 #ifdef STEST
 				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func(
-						(void*)&CoCoSetTimerAsync, (void*) &(wbT_end_ts[j]), "CoCoSetTimerAsync");
+						(void*)&CoCoSetTimerAsync, (void*) &(wbT_end_ts[j]));
 				bytes_out[j]= tmp->size();
 				dev_out_from[j] = run_dev_id;
 				dev_out_to[j] = Writeback_id;
 #endif
 				Ptr_atomic_int_p wrapped_op = (Ptr_atomic_int_p) malloc(sizeof(struct Ptr_atomic_int));
 				wrapped_op->ato_int_ptr = &tmp->RW_lock_holders;
-				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func((void*)&CoCoDecAsync, (void*) wrapped_op, "CoCoDecAsync");
+				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func((void*)&CoCoDecAsync, (void*) wrapped_op);
 
 				CBlock_wrap_p wrap_inval = NULL;
 				wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 				wrap_inval->CBlock = tmp->StoreBlock[run_dev_id_idx];
 				wrap_inval->lockfree = false;
-				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 7");
+				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval);
 			}
 		}
 		else if (TileDimlist[j] == 2){
@@ -1224,7 +1224,7 @@ void Subkernel::writeback_data(){
 						run_dev_id, id, tmp->id, tmp->GridId1, tmp->GridId2, j, print_state(prev_state));
 #ifdef STEST
 				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func(
-						(void*)&CoCoSetTimerAsync, (void*) &(wbT_start_ts[j]), "CoCoSetTimerAsync");
+						(void*)&CoCoSetTimerAsync, (void*) &(wbT_start_ts[j]));
 				//CoCoSetTimerAsync((void*) &(wbT_start_ts[j]));
 #endif
 				CoCoMemcpy2DAsync(tmp->WriteBackBlock->Adrs, tmp->ldim[Writeback_id_idx],
@@ -1233,7 +1233,7 @@ void Subkernel::writeback_data(){
 					Writeback_id, run_dev_id, wb_queues[Writeback_id_idx][run_dev_id_idx]);
 #ifdef STEST
 				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func(
-						(void*)&CoCoSetTimerAsync, (void*) &(wbT_end_ts[j]), "CoCoSetTimerAsync");
+						(void*)&CoCoSetTimerAsync, (void*) &(wbT_end_ts[j]));
 				bytes_out[j]= tmp->size();
 				dev_out_from[j] = run_dev_id;
 				dev_out_to[j] = Writeback_id;
@@ -1241,13 +1241,13 @@ void Subkernel::writeback_data(){
 
 				Ptr_atomic_int_p wrapped_op = (Ptr_atomic_int_p) malloc(sizeof(struct Ptr_atomic_int));
 				wrapped_op->ato_int_ptr = &tmp->RW_lock_holders;
-				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func((void*)&CoCoDecAsync, (void*) wrapped_op, "CoCoDecAsync");
+				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func((void*)&CoCoDecAsync, (void*) wrapped_op);
 
 				CBlock_wrap_p wrap_inval = NULL;
 				wrap_inval = (CBlock_wrap_p) malloc (sizeof(struct CBlock_wrap));
 				wrap_inval->CBlock = tmp->StoreBlock[run_dev_id_idx];
 				wrap_inval->lockfree = false;
-				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval, "CBlock_RW_INV_wrap 8");
+				wb_queues[Writeback_id_idx][run_dev_id_idx]->add_host_func((void*)&CBlock_RW_INV_wrap, (void*) wrap_inval);
 			}
 		}
 		else error("Subkernel(dev=%d,id=%d)::writeback_data: Not implemented for TileDim=%d\n", run_dev_id, id, TileDimlist[j]);
@@ -2003,6 +2003,7 @@ void STEST_print_SK(kernel_pthread_wrap_p* thread_dev_data_list, double routine_
 
 #ifdef TTEST
 	HopMemcpyPrint();
+	n_HopMemcpyPrint();
 #endif
 	lprintf(0, "\n");
 	lprintf(0,"\nSum-up R-Tiles:\n");
