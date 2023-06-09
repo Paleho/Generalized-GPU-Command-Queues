@@ -25,10 +25,10 @@ export PARALIA_CUDA_LOAD_COMMAND='-lcuda'
 export PARALIA_CXX_PREFIX="default"
 
 # CHECKME: Define path for prebuild openblas. NOTE: OpenBLAS built using the same gcc is adviced.
-export PARALIA_OPENBLAS_PREFIX="/home/users/panastas/Lib_install/OpenBLAS-gcc93"
+export PARALIA_OPENBLAS_PREFIX="/home/users/spoutas/Libs/OpenBLAS-install"
 
 # CHECKME: Also build BLASX benchmarks. NOTE: Requires pre-build BLASX with same compiler(s)
-export PARALIA_BLASX_BENCH=1
+export PARALIA_BLASX_BENCH=0
 # CHECKME: Define path for prebuild blasx.
 export PARALIA_BLASX_PREFIX="/home/users/panastas/PhD_stuff/Other-libs/BLASX-pinned"
 
