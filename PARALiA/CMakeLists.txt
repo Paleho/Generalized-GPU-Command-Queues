@@ -182,7 +182,7 @@ if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES $ENV{PARALIA_CUDA_ARCH})
 endif()
 
-set (CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -w -O3 -g -G")
+set (CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -w -O3 -g1")
 message("PARALiA-Framework - CMAKE_CUDA_FLAGS: " ${CMAKE_CUDA_FLAGS})
 
 set (CUDA_INCLUDE_DIRS ${CUDA_PREFIX}/include ${CUDA_PREFIX}/samples/common/inc)
@@ -247,7 +247,7 @@ if(NOT $ENV{PARALIA_CXX_PREFIX} STREQUAL "default")
   set (CMAKE_C_COMPILER ${CXX_PREFIX}/bin/gcc)
 endif()
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp -lm  -g -Wuninitialized")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp -lm  -g1 -Wuninitialized")
 message("PARALiA-Framework - CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
 
 #set(CMAKE_C_FLAGS ${CMAKE_CXX_FLAGS})
