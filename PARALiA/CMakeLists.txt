@@ -128,7 +128,7 @@ add_definitions(-DSTEST)
 #add_definitions(-DDSTEST)
 
 #Run in Link Hop testing mode; transfers using link hops are logged and timed.
-#add_definitions(-DTTEST)
+add_definitions(-DTTEST)
 
 #Run in debug mode, which includes detailed function calls and info for error-checking
 add_definitions(-DDEBUG)
@@ -211,7 +211,7 @@ else()
 endif()
 
 set (CUDA_LD ${CUDA_PREFIX}/lib64) # or /lib depending on system
-set (CUDA_LINK "-L${CUDA_LD} -lcudart -lcublas -lcurand -lcuda")
+set (CUDA_LINK "-L${CUDA_LD} -lcudart -lcublas -lcurand $ENV{PARALIA_CUDA_LOAD_COMMAND}")
 message("PARALiA-Framework - CUDA_LINK: " ${CUDA_LINK} )
 
 if(${BACKEND} STREQUAL "HIP")
@@ -266,7 +266,7 @@ message("PARALiA-Framework - OPENBLAS_LINK: " ${OPENBLAS_LINK})
 
 #---------------------------------------------Start Project-----------------------------------------------------#
 
-project (PARALiA-Framework VERSION ${PROJECT_VERSION} DESCRIPTION "The complete PARALiA Framework")
+project (PARALiA-Framework VERSION ${PROJECT_VERSION} DESCRIPTION "The complete PARALiA Framework" LANGUAGES CUDA CXX)
 
 if($ENV{PARALIA_INSTALL_PREFIX} STREQUAL "default")
   message("PARALiA-Framework - PARALIA_INSTALL_PREFIX not provided, project will be installed under build dir.")
