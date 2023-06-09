@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "unihelpers.hpp"
-#include "pthreads_backend_wrappers.hpp"
+#include "backend_wrappers.hpp"
 
 #define IDX2F(i,j,ld) (((j)*(ld)) + (i))
 

@@ -9,7 +9,7 @@
 #include <float.h>
 #include <curand.h>
 
-#include "pthreads_backend_wrappers.hpp"
+#include "backend_wrappers.hpp"
 
 long int CoCoGetMaxDimSqAsset2D(short Asset2DNum, short dsize, long int step, short loc){
 	size_t free_cuda_mem, max_cuda_mem;

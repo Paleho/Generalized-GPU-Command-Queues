@@ -6,7 +6,7 @@
 
 #include <cblas.h>
 
-#include "pthreads_backend_wrappers.hpp"
+#include "backend_wrappers.hpp"
 
 void CoCoQueueLock(void* wrapped_lock){
 #ifdef ENABLE_MUTEX_LOCKING

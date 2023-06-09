@@ -8,7 +8,7 @@
 #include <float.h>
 #include <curand.h>
 
-#include "pthreads_backend_wrappers.hpp"
+#include "backend_wrappers.hpp"
 
 void CoCoSyncCheckErr(){
   cudaError_t errSync = cudaDeviceSynchronize();

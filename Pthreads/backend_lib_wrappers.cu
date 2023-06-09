@@ -9,7 +9,7 @@
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
 
-#include "pthreads_backend_wrappers.hpp"
+#include "backend_wrappers.hpp"
 
 #define THREAD_POOL_SZ 128
 pthread_t thread_pool[THREAD_POOL_SZ];

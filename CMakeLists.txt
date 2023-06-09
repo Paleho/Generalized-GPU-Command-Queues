@@ -181,7 +181,7 @@ elseif(${BACKEND} STREQUAL "Pthreads")
 
 	configure_file(${UNIHELP_DIR_INC}/unihelpers.hpp ${UNIHELP_INSTALL_INC}/unihelpers.hpp COPYONLY)
 	## FIXME: This is a temporary cheat for deployment, must be removed at some point (?). It has to do with TransposeTranslate.
-	configure_file(${BACKEND_UNIHELP_DIR_SRC}/pthreads_backend_wrappers.hpp ${UNIHELP_INSTALL_INC}/pthreads_backend_wrappers.hpp COPYONLY)
+	configure_file(${BACKEND_UNIHELP_DIR_SRC}/backend_wrappers.hpp ${UNIHELP_INSTALL_INC}/backend_wrappers.hpp COPYONLY)
 
 else()
 	message(FATAL_ERROR "Universal Helpers - BACKEND flag error: BACKEND=" ${BACKEND} )
