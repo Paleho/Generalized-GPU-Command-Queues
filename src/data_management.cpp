@@ -9,8 +9,8 @@
 #include <float.h>
 #include <curand.h>
 
-#include <unihelpers.hpp>
-#include <backend_wrappers.hpp>
+#include "unihelpers.hpp"
+#include "backend_wrappers.hpp"
 
 #ifdef TTEST /// C programmers hate him
 double timers[LOC_NUM][LOC_NUM][2][10000];
