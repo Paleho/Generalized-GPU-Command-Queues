@@ -270,7 +270,7 @@ void CommandQueue::add_host_func(void* func, void* data, std::string name, std::
 	task_p->func = func;
 	task_p->data = data;
 	task_p->function_name = name;
-	if(name.compare("Default_name") == 0) std::cout << "CommandQueue::add_host_func() called with default function name from caller = " << caller << "\n";
+	// if(name.compare("Default_name") == 0) std::cout << "CommandQueue::add_host_func() called with default function name from caller = " << caller << "\n";
 
 	queue_data_p backend_d = (queue_data_p) cqueue_backend_data;
 
