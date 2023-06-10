@@ -4,6 +4,9 @@
 /// \brief 
 ///
 
+#ifndef UNIHELPERS_BACK_H
+#define UNIHELPERS_BACK_H
+
 #include <cuda.h>
 #include <pthread.h>
 #include "cublas_v2.h"
@@ -172,3 +175,5 @@ void cblas_wrap_saxpy(void* backend_data);
 void cblas_wrap_dgemm(void* backend_data);
 void cblas_wrap_dgemv(void* backend_data);
 void cblas_wrap_sgemm(void* backend_data);
+
+#endif
