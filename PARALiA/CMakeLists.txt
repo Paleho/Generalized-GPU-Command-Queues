@@ -45,9 +45,9 @@ add_definitions(-DENABLE_CPU_WORKLOAD)
 #add_definitions(-DENABLE_TILE_PREFETCH)
 
 ## Enable using transfer hops for faster transfers between multiple links
-# add_definitions(-DENABLE_TRANSFER_HOPS)
+add_definitions(-DENABLE_TRANSFER_HOPS)
 ## Enable using transfer hops for W tiles as well (no data reuse, but potentially better BW)
-# add_definitions(-DENABLE_TRANSFER_W_HOPS)
+add_definitions(-DENABLE_TRANSFER_W_HOPS)
 ## Enable using heuristic-based W-hops (and Send-Recv Over) activation
 #add_definitions(-DENABLE_PREDICT_HOP_MODE)
 
@@ -122,13 +122,13 @@ add_definitions(-DFETCH_UNAVAILABLE_PENALTY=0.1)
 #add_definitions(-DTEST)
 
 #Run in Subkernel testing mode : details about time spend in subkernel operations.
-add_definitions(-DSTEST)
+# add_definitions(-DSTEST)
 
 #Run in Deep Subkernel testing mode : many details about time spend in subkernel operations.
 #add_definitions(-DDSTEST)
 
 #Run in Link Hop testing mode; transfers using link hops are logged and timed.
-add_definitions(-DTTEST)
+# add_definitions(-DTTEST)
 
 #Run in debug mode, which includes detailed function calls and info for error-checking
 add_definitions(-DDEBUG)
@@ -152,7 +152,7 @@ add_definitions(-DDDEBUG)
 #add_definitions(-DUDEBUG)
 
 #Run in unihelper deep debug mode, for unihelper-related debugging
-add_definitions(-DUDDEBUG)
+# add_definitions(-DUDDEBUG)
 
 ## Define a name for the testbed, to be used for the whole framework setup
 set(TESTBED_NAME $ENV{PARALIA_SYSTEM})
