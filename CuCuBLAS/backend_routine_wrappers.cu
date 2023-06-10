@@ -36,38 +36,38 @@ void CoCoQueueUnlock(void* wrapped_lock){
 void CoCoIncAsync(void* wrapped_ptr_int){
   Ptr_atomic_int_p unwrapped = (Ptr_atomic_int_p) wrapped_ptr_int;
   *(unwrapped->ato_int_ptr)++;
-  free(unwrapped);
 #ifdef DEBUG
   lprintf(6, "CoCoIncAsync(%p, new_val=%d) ran succesfully.\n", unwrapped->ato_int_ptr, (*(unwrapped->ato_int_ptr)).load());
 #endif
+  free(unwrapped);
 }
 
 void CoCoDecAsync(void* wrapped_ptr_int){
   Ptr_atomic_int_p unwrapped = (Ptr_atomic_int_p) wrapped_ptr_int;
   (*(unwrapped->ato_int_ptr))--;
-  free(unwrapped);
 #ifdef DEBUG
   lprintf(6, "CoCoDecAsync(%p, new_val=%d) ran succesfully.\n", unwrapped->ato_int_ptr, (*(unwrapped->ato_int_ptr)).load());
 #endif
+  free(unwrapped);
 }
 
 void CoCoSetInt(void* wrapped_ptr_and_val){
   Ptr_and_int_p unwrapped = (Ptr_and_int_p) wrapped_ptr_and_val;
   *(unwrapped->int_ptr) = unwrapped->val;
-  free(unwrapped);
 #ifdef DEBUG
   lprintf(6, "CoCoSetVal(%p, %d) ran succesfully.\n", unwrapped->int_ptr, unwrapped->val);
 #endif
+  free(unwrapped);
 }
 
 void CoCoSetPtr(void* wrapped_ptr_and_parent){
   Ptr_and_parent_p unwrapped = (Ptr_and_parent_p) wrapped_ptr_and_parent;
   void* prev_ptr = *(unwrapped->ptr_parent);
   *(unwrapped->ptr_parent) = unwrapped->ptr_val;
-  free(unwrapped);
 #ifdef DEBUG
   lprintf(6, "CoCoSetPtr(prev=%p, %p) ran succesfully.\n", prev_ptr, unwrapped->ptr_val);
 #endif
+  free(unwrapped);
 }
 
 void cblas_wrap_daxpy(void* backend_data){
