@@ -69,8 +69,11 @@ void* taskExecLoop(void * args)
 			break;
 		} 
 		else if(task_queue_p->size() > 0){
+			// for(int i = 0; i < STREAM_POOL_SZ; i++)
+			// 	massert(cudaSuccess == cudaStreamQuery(thread_data->stream_pool[i]), "Error: Found stream with pending work\n");
+
 			for(int i = 0; i < STREAM_POOL_SZ; i++)
-				massert(cudaSuccess == cudaStreamQuery(thread_data->stream_pool[i]), "Error: Found stream with pending work\n");
+				massert(cudaSuccess == cudaStreamSynchronize(thread_data->stream_pool[i]), "Error: while synchronizing stream %d\n", i);
 
 			// get next task
 			pthread_task_p curr_task_p = task_queue_p->front();
@@ -244,6 +247,8 @@ void CommandQueue::sync_barrier()
 		queueIsBusy = task_queue_p->size() > 0;
 		if(!queueIsBusy){
 			for(int i = 0; i < STREAM_POOL_SZ; i++)
+				massert(cudaSuccess == cudaStreamSynchronize(backend_d->stream_pool[i]), "Error: while synchronizing stream %d\n", i);
+			for(int i = 0; i < STREAM_POOL_SZ; i++)
 				massert(cudaSuccess == cudaStreamQuery(backend_d->stream_pool[i]), "Error: CommandQueue::sync_barrier found stream with pending work\n");
 		}
 		release_lock_q(&backend_d->queueLock);
@@ -299,6 +304,10 @@ void * blockQueue(void * data){
 		#endif
 	}
 
+	#ifdef DDEBUG
+		lprintf(lvl, "blockQueue done blocking for event = %p\n", Wevent);
+	#endif
+
 	#ifdef UDDEBUG
 		lprintf(lvl, "[dev_id=%3d] <-----| blockQueue(Event(%d))\n", Wevent->dev_id, Wevent->id);
 	#endif
@@ -318,6 +327,9 @@ void CommandQueue::wait_for_event(Event_p Wevent)
 			return;
 		}
 
+		#ifdef DDEBUG
+			lprintf(lvl, "CommandQueue::wait_for_event event = %p (status = %s) : queue = %p\n", Wevent, print_event_status(Wevent->query_status()), this);
+		#endif
 		add_host_func((void*) &blockQueue, (void*) Wevent, "blockQueue");
 	}
 #ifdef UDDEBUG
@@ -474,6 +486,9 @@ void Event::record_to_queue(CQueue_p Rr){
 
 	// std::cout << "Event::record_to_queue: event " << event_p << "recorded" << std::endl;
 	Rr->add_host_func((void*) &eventFunc, (void*) event_p, "eventFunc");
+#ifdef DDEBUG
+	lprintf(lvl, "Event(%p)::record_to_queue(Queue = %p)\n", this, Rr);
+#endif
 
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| Event(%d)::record_to_queue(Queue(dev_id=%d))\n", dev_id, id, Rr->dev_id);
@@ -560,8 +575,16 @@ void Event::reset(){
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::reset() calls soft_reset()\n", dev_id, id);
 #endif
+#ifdef DDEBUG
+	lprintf(lvl, "Event(%p)::reset started\n", this);
+#endif
+
 	sync_barrier();
 	soft_reset();
+
+#ifdef DDEBUG
+	lprintf(lvl, "Event(%p)::reset done\n", this);
+#endif
 
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| Event(%d)::reset()\n", dev_id, id);

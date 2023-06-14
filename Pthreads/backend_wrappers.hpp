@@ -131,49 +131,49 @@ char PrintCublasOp(cublasOperation_t src);
 void cudaCheckErrors();
 
 // Lock wrapped_lock. This functions is fired in a queue to lock when it reaches that point.
-void CoCoQueueLock(void* wrapped_lock);
+void* CoCoQueueLock(void* wrapped_lock);
 // Unlock wrapped_lock. This functions is fired in a queue to unlock when it reaches that point.
-void CoCoQueueUnlock(void* wrapped_lock);
+void* CoCoQueueUnlock(void* wrapped_lock);
 
 // Struct containing an int pointer
 typedef struct Ptr_atomic_int{
 	std::atomic<int>* ato_int_ptr;
 }* Ptr_atomic_int_p;
-void CoCoIncAsync(void* wrapped_ptr_int);
-void CoCoDecAsync(void* wrapped_ptr_int);
+void* CoCoIncAsync(void* wrapped_ptr_int);
+void* CoCoDecAsync(void* wrapped_ptr_int);
 
 // Struct containing an int pointer and an int for Asynchronous set
 typedef struct Ptr_and_int{
 	int* int_ptr;
 	int val;
 }* Ptr_and_int_p;
-void CoCoSetInt(void* wrapped_ptr_and_val);
+void* CoCoSetInt(void* wrapped_ptr_and_val);
 
 // Struct containing a void pointer and a void for Asynchronous set
 typedef struct Ptr_and_parent{
 	void** ptr_parent;
 	void* ptr_val;
 }* Ptr_and_parent_p;
-void CoCoSetPtr(void* wrapped_ptr_and_parent);
+void* CoCoSetPtr(void* wrapped_ptr_and_parent);
 
 void CoCoSetTimerAsync(void* wrapped_timer_Ptr);
 
 void CoCoFreeAllocAsync(void* backend_data);
 
-void cublas_wrap_ddot(void* wider_backend_data);
+void* cublas_wrap_ddot(void* wider_backend_data);
 
-void cublas_wrap_daxpy(void* wider_backend_data);
-void cublas_wrap_saxpy(void* wider_backend_data);
-void cublas_wrap_dgemm(void* wider_backend_data);
-void cublas_wrap_dgemv(void* wider_backend_data);
-void cublas_wrap_sgemm(void* wider_backend_data);
+void* cublas_wrap_daxpy(void* wider_backend_data);
+void* cublas_wrap_saxpy(void* wider_backend_data);
+void* cublas_wrap_dgemm(void* wider_backend_data);
+void* cublas_wrap_dgemv(void* wider_backend_data);
+void* cublas_wrap_sgemm(void* wider_backend_data);
 
-void cblas_wrap_ddot(void* backend_data);
+void* cblas_wrap_ddot(void* backend_data);
 
-void cblas_wrap_daxpy(void* backend_data);
-void cblas_wrap_saxpy(void* backend_data);
-void cblas_wrap_dgemm(void* backend_data);
-void cblas_wrap_dgemv(void* backend_data);
-void cblas_wrap_sgemm(void* backend_data);
+void* cblas_wrap_daxpy(void* backend_data);
+void* cblas_wrap_saxpy(void* backend_data);
+void* cblas_wrap_dgemm(void* backend_data);
+void* cblas_wrap_dgemv(void* backend_data);
+void* cblas_wrap_sgemm(void* backend_data);
 
 #endif

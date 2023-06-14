@@ -1121,7 +1121,7 @@ void Subkernel::writeback_data_hops(){
 	CoCoSyncCheckErr();
 #endif
 #ifdef DEBUG
-	lprintf(lvl-1, "<-----|\n");
+	lprintf(lvl-1, "<-----|Subkernel(dev=%d,id=%d)::writeback_data_hops()\n", run_dev_id, id);
 #endif
 }
 #endif

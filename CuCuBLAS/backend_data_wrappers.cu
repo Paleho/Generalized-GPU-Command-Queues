@@ -228,8 +228,8 @@ void CoCMempy2DAsyncWrap3D(void* dest, long int ldest, void* src, long int ldsrc
 void CoCoMemcpy2DAsync(void* dest, long int ldest, void* src, long int ldsrc, long int rows, long int cols, short elemSize, short loc_dest, short loc_src, CQueue_p transfer_queue){
 	short lvl = 6;
 #ifdef DDEBUG
-	lprintf(lvl, "CoCoMemcpy2DAsync(dest=%p, ldest =%zu, src=%p, ldsrc = %zu, rows = %zu, cols = %zu, elemsize = %d, loc_dest = %d, loc_src = %d)\n",
-		dest, ldest, src, ldsrc, rows, cols, elemSize, loc_dest, loc_src);
+	lprintf(lvl, "CoCoMemcpy2DAsync(dest=%p, ldest =%zu, src=%p, ldsrc = %zu, rows = %zu, cols = %zu, elemsize = %d, loc_dest = %d, loc_src = %d) on queue = %p\n",
+		dest, ldest, src, ldsrc, rows, cols, elemSize, loc_dest, loc_src, transfer_queue);
 #endif
 #ifdef ENABLE_PARALLEL_BACKEND
 	cudaStream_t stream = *((cudaStream_t*)transfer_queue->cqueue_backend_ptr[transfer_queue->backend_ctr]);

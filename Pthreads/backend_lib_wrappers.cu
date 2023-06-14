@@ -29,6 +29,9 @@ void backend_run_operation(void* backend_data, const char* opname, CQueue_p run_
       wider_data->backend_data = backend_data;
 
       run_queue->add_host_func((void*)&cublas_wrap_dgemm, (void*)wider_data, "cublas_wrap_dgemm");
+#ifdef DDEBUG
+	lprintf(lvl, "backend_run_operation added cublas_wrap_dgemm to queue = %p\n", run_queue);
+#endif
     }
     else error("backend_run_operation(gemm,double): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
   }

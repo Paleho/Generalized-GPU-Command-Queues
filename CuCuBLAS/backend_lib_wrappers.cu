@@ -46,7 +46,12 @@ void backend_run_operation(void* backend_data, const char* opname, CQueue_p run_
   if (!strcmp(opname, "Dgemm")){
     gemm_backend_in<double>* ptr_ker_translate = (gemm_backend_in<double>*) backend_data;
     if(ptr_ker_translate->dev_id == -1) run_queue->add_host_func((void*)&cblas_wrap_dgemm, backend_data);
-    else if(ptr_ker_translate->dev_id >= 0) cublas_wrap_dgemm(backend_data, run_queue);
+    else if(ptr_ker_translate->dev_id >= 0) {
+      cublas_wrap_dgemm(backend_data, run_queue);
+#ifdef DDEBUG
+	lprintf(lvl, "backend_run_operation added cublas_wrap_dgemm to queue = %p\n", run_queue);
+#endif
+    }
     else error("backend_run_operation(dgemm): Not implemented for dev_id = %d\n", ptr_ker_translate->dev_id);
   }
   else if (!strcmp(opname, "Dgemv")){

@@ -8,7 +8,7 @@
 
 #include "backend_wrappers.hpp"
 
-void CoCoQueueLock(void* wrapped_lock){
+void* CoCoQueueLock(void* wrapped_lock){
 #ifdef ENABLE_MUTEX_LOCKING
   (*(std::mutex*)wrapped_lock).lock();
 #else
@@ -17,9 +17,10 @@ void CoCoQueueLock(void* wrapped_lock){
 #ifdef DEBUG
   lprintf(6, "CoCoQueueLock(%p) ran succesfully.\n", wrapped_lock);
 #endif
+  return 0;
 }
 
-void CoCoQueueUnlock(void* wrapped_lock){
+void* CoCoQueueUnlock(void* wrapped_lock){
 #ifdef ENABLE_MUTEX_LOCKING
 	(*(std::mutex*)wrapped_lock).unlock();
 #else
@@ -31,36 +32,40 @@ void CoCoQueueUnlock(void* wrapped_lock){
 #ifdef DEBUG
   lprintf(6, "CoCoQueueUnlock(%p) ran succesfully.\n", wrapped_lock);
 #endif
+  return 0;
 }
 
-void CoCoIncAsync(void* wrapped_ptr_int){
+void* CoCoIncAsync(void* wrapped_ptr_int){
   Ptr_atomic_int_p unwrapped = (Ptr_atomic_int_p) wrapped_ptr_int;
   *(unwrapped->ato_int_ptr)++;
 #ifdef DEBUG
   lprintf(6, "CoCoIncAsync(%p, new_val=%d) ran succesfully.\n", unwrapped->ato_int_ptr, (*(unwrapped->ato_int_ptr)).load());
 #endif
   free(unwrapped);
+  return 0;
 }
 
-void CoCoDecAsync(void* wrapped_ptr_int){
+void* CoCoDecAsync(void* wrapped_ptr_int){
   Ptr_atomic_int_p unwrapped = (Ptr_atomic_int_p) wrapped_ptr_int;
   (*(unwrapped->ato_int_ptr))--;
 #ifdef DEBUG
   lprintf(6, "CoCoDecAsync(%p, new_val=%d) ran succesfully.\n", unwrapped->ato_int_ptr, (*(unwrapped->ato_int_ptr)).load());
 #endif
   free(unwrapped);
+  return 0;
 }
 
-void CoCoSetInt(void* wrapped_ptr_and_val){
+void* CoCoSetInt(void* wrapped_ptr_and_val){
   Ptr_and_int_p unwrapped = (Ptr_and_int_p) wrapped_ptr_and_val;
   *(unwrapped->int_ptr) = unwrapped->val;
 #ifdef DEBUG
   lprintf(6, "CoCoSetVal(%p, %d) ran succesfully.\n", unwrapped->int_ptr, unwrapped->val);
 #endif
   free(unwrapped);
+  return 0;
 }
 
-void CoCoSetPtr(void* wrapped_ptr_and_parent){
+void* CoCoSetPtr(void* wrapped_ptr_and_parent){
   Ptr_and_parent_p unwrapped = (Ptr_and_parent_p) wrapped_ptr_and_parent;
   void* prev_ptr = *(unwrapped->ptr_parent);
   *(unwrapped->ptr_parent) = unwrapped->ptr_val;
@@ -68,30 +73,35 @@ void CoCoSetPtr(void* wrapped_ptr_and_parent){
   lprintf(6, "CoCoSetPtr(prev=%p, %p) ran succesfully.\n", prev_ptr, unwrapped->ptr_val);
 #endif
   free(unwrapped);
+  return 0;
 }
 
-void cblas_wrap_daxpy(void* backend_data){
+void* cblas_wrap_daxpy(void* backend_data){
   axpy_backend_in<double>* ptr_ker_translate = (axpy_backend_in<double>*) backend_data;
   cblas_daxpy(ptr_ker_translate->N, ptr_ker_translate->alpha,
     (double*) *ptr_ker_translate->x, ptr_ker_translate->incx, (double*)
     *ptr_ker_translate->y, ptr_ker_translate->incy);
+
+  return 0;
 }
 
-void cblas_wrap_saxpy(void* backend_data){
+void* cblas_wrap_saxpy(void* backend_data){
   axpy_backend_in<float>* ptr_ker_translate = (axpy_backend_in<float>*) backend_data;
   cblas_saxpy(ptr_ker_translate->N, ptr_ker_translate->alpha,
     (float*) *ptr_ker_translate->x, ptr_ker_translate->incx, (float*)
     *ptr_ker_translate->y, ptr_ker_translate->incy);
+  return 0;
 }
 
-void cblas_wrap_ddot(void* backend_data){
+void* cblas_wrap_ddot(void* backend_data){
   dot_backend_in<double>* ptr_ker_translate = (dot_backend_in<double>*) backend_data;
   *ptr_ker_translate->result = cblas_ddot(ptr_ker_translate->N, (double*) *ptr_ker_translate->x,
   ptr_ker_translate->incx, (double*) *ptr_ker_translate->y,
   ptr_ker_translate->incy);
+  return 0;
 }
 
-void cblas_wrap_dgemm(void* backend_data){
+void* cblas_wrap_dgemm(void* backend_data){
   short lvl = 6;
   gemm_backend_in<double>* ptr_ker_translate = (gemm_backend_in<double>*) backend_data;
 #ifdef DDEBUG
@@ -114,9 +124,11 @@ void cblas_wrap_dgemm(void* backend_data){
     (double*) *ptr_ker_translate->A, ptr_ker_translate->ldA,
     (double*) *ptr_ker_translate->B, ptr_ker_translate->ldB,
     ptr_ker_translate->beta, (double*) *ptr_ker_translate->C, ptr_ker_translate->ldC);
+  
+  return 0;
 }
 
-void cblas_wrap_dgemv(void* backend_data){
+void* cblas_wrap_dgemv(void* backend_data){
   short lvl = 6;
   gemv_backend_in<double>* ptr_ker_translate = (gemv_backend_in<double>*) backend_data;
 #ifdef DDEBUG
@@ -139,9 +151,11 @@ void cblas_wrap_dgemv(void* backend_data){
     (double*) *ptr_ker_translate->A, ptr_ker_translate->ldA,
     (double*) *ptr_ker_translate->x, ptr_ker_translate->incx,
     ptr_ker_translate->beta, (double*) *ptr_ker_translate->y, ptr_ker_translate->incy);
+
+  return 0;
 }
 
-void cblas_wrap_sgemm(void* backend_data){
+void* cblas_wrap_sgemm(void* backend_data){
   short lvl = 6;
   gemm_backend_in<float>* ptr_ker_translate = (gemm_backend_in<float>*) backend_data;
 #ifdef DDEBUG
@@ -164,9 +178,11 @@ void cblas_wrap_sgemm(void* backend_data){
     (float*) *ptr_ker_translate->A, ptr_ker_translate->ldA,
     (float*) *ptr_ker_translate->B, ptr_ker_translate->ldB,
     ptr_ker_translate->beta, (float*) *ptr_ker_translate->C, ptr_ker_translate->ldC);
+
+  return 0;
 }
 
-void cublas_wrap_daxpy(void* wider_backend_data){
+void* cublas_wrap_daxpy(void* wider_backend_data){
   wider_backend_in_p wider_data_p = (wider_backend_in_p) wider_backend_data;
   
   axpy_backend_in<double>* ptr_ker_translate = (axpy_backend_in<double>*) wider_data_p->backend_data;
@@ -194,9 +210,11 @@ void cublas_wrap_daxpy(void* wider_backend_data){
 
   cudaError_t err = cudaStreamSynchronize(queue_backend_data->stream_pool[current_stream_ctr]);
   massert(cudaSuccess == err, "cublas_wrap_daxpy: stream sync failed, current_stream_ctr = %d, queue_backend_data = %x, queue_backend_data->stream_pool[current_stream_ctr] = %x, cudaError = %s\n", current_stream_ctr, queue_backend_data, queue_backend_data->stream_pool[current_stream_ctr], cudaGetErrorString(err));
+
+  return 0;
 }
 
-void cublas_wrap_ddot(void* wider_backend_data){
+void* cublas_wrap_ddot(void* wider_backend_data){
   wider_backend_in_p wider_data_p = (wider_backend_in_p) wider_backend_data;
 
   dot_backend_in<double>* ptr_ker_translate = (dot_backend_in<double>*) wider_data_p->backend_data;
@@ -223,9 +241,11 @@ void cublas_wrap_ddot(void* wider_backend_data){
 
   cudaError_t err = cudaStreamSynchronize(queue_backend_data->stream_pool[current_stream_ctr]);
   massert(cudaSuccess == err, "cublas_wrap_ddot: stream sync failed, current_stream_ctr = %d, queue_backend_data = %x, queue_backend_data->stream_pool[current_stream_ctr] = %x, cudaError = %s\n", current_stream_ctr, queue_backend_data, queue_backend_data->stream_pool[current_stream_ctr], cudaGetErrorString(err));
+
+  return 0;
 }
 
-void cublas_wrap_dgemm(void* wider_backend_data){
+void* cublas_wrap_dgemm(void* wider_backend_data){
   short lvl = 6;
   wider_backend_in_p wider_data_p = (wider_backend_in_p) wider_backend_data;
 
@@ -271,9 +291,11 @@ void cublas_wrap_dgemm(void* wider_backend_data){
 
   cudaError_t err = cudaStreamSynchronize(queue_backend_data->stream_pool[current_stream_ctr]);
   massert(cudaSuccess == err, "cublas_wrap_dgemm: stream sync failed, current_stream_ctr = %d, queue_backend_data = %x, queue_backend_data->stream_pool[current_stream_ctr] = %x, cudaError = %s\n", current_stream_ctr, queue_backend_data, queue_backend_data->stream_pool[current_stream_ctr], cudaGetErrorString(err));
+
+  return 0;
 }
 
-void cublas_wrap_sgemm(void* wider_backend_data){
+void* cublas_wrap_sgemm(void* wider_backend_data){
   short lvl = 6;
   wider_backend_in_p wider_data_p = (wider_backend_in_p) wider_backend_data;
 
@@ -319,9 +341,11 @@ void cublas_wrap_sgemm(void* wider_backend_data){
 
   cudaError_t err = cudaStreamSynchronize(queue_backend_data->stream_pool[current_stream_ctr]);
   massert(cudaSuccess == err, "cublas_wrap_sgemm: stream sync failed, current_stream_ctr = %d, queue_backend_data = %x, queue_backend_data->stream_pool[current_stream_ctr] = %x, cudaError = %s\n", current_stream_ctr, queue_backend_data, queue_backend_data->stream_pool[current_stream_ctr], cudaGetErrorString(err));
+
+  return 0;
 }
 
-void cublas_wrap_dgemv(void* wider_backend_data){
+void* cublas_wrap_dgemv(void* wider_backend_data){
   short lvl = 6;
   wider_backend_in_p wider_data_p = (wider_backend_in_p) wider_backend_data;
 
@@ -365,4 +389,6 @@ void cublas_wrap_dgemv(void* wider_backend_data){
 
   cudaError_t err = cudaStreamSynchronize(queue_backend_data->stream_pool[current_stream_ctr]);
   massert(cudaSuccess == err, "cublas_wrap_dgemv: stream sync failed, current_stream_ctr = %d, queue_backend_data = %x, queue_backend_data->stream_pool[current_stream_ctr] = %x, cudaError = %s\n", current_stream_ctr, queue_backend_data, queue_backend_data->stream_pool[current_stream_ctr], cudaGetErrorString(err));
+
+  return 0;
 }

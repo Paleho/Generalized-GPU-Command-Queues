@@ -287,7 +287,8 @@ void* PARALiADgemmAgentVoid(void* kernel_pthread_wrapped){
 #endif
 
 #ifdef DEBUG
-	lprintf(lvl-1, "<-----|\n");
+	lprintf(lvl-1, "<-----| PARALiADgemmAgentVoid(gemm_subkernel_data: dev_id = %d)\n",
+		dev_id);
 #endif
 	return NULL;
 }

@@ -282,6 +282,12 @@ void _CoCoMemcpy2DAsync(void* input)
 
 	queue_data_p queue_backend_data = input_unwrapped->q_data;
 
+#ifdef DDEBUG
+	short lvl = 6;
+	lprintf(lvl, "_CoCoMemcpy2DAsync(dest=%p, ldest =%zu, src=%p, ldsrc = %zu, rows = %zu, cols = %zu, elemsize = %d, loc_dest = %d, loc_src = %d)\n",
+		input_unwrapped->dest, input_unwrapped->ldest, input_unwrapped->src, input_unwrapped->ldsrc, input_unwrapped->rows, input_unwrapped->cols, input_unwrapped->elemSize, input_unwrapped->loc_dest, input_unwrapped->loc_src);
+#endif
+
 	get_lock_q(&queue_backend_data->queueLock);
 		// Get stream and increase stream index
 		int current_stream_ctr = queue_backend_data->stream_ctr;
@@ -316,8 +322,8 @@ void _CoCoMemcpy2DAsync(void* input)
 void CoCoMemcpy2DAsync(void* dest, long int ldest, void* src, long int ldsrc, long int rows, long int cols, short elemSize, short loc_dest, short loc_src, CQueue_p transfer_queue){
 	short lvl = 6;
 #ifdef DDEBUG
-	lprintf(lvl, "CoCoMemcpy2DAsync(dest=%p, ldest =%zu, src=%p, ldsrc = %zu, rows = %zu, cols = %zu, elemsize = %d, loc_dest = %d, loc_src = %d)\n",
-		dest, ldest, src, ldsrc, rows, cols, elemSize, loc_dest, loc_src);
+	lprintf(lvl, "CoCoMemcpy2DAsync(dest=%p, ldest =%zu, src=%p, ldsrc = %zu, rows = %zu, cols = %zu, elemsize = %d, loc_dest = %d, loc_src = %d) on queue = %p\n",
+		dest, ldest, src, ldsrc, rows, cols, elemSize, loc_dest, loc_src, transfer_queue);
 #endif
 
 	CoCoMemcpy2D_data_p data = new CoCoMemcpy2D_data;
