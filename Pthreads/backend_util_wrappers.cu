@@ -9,11 +9,12 @@
 #include <curand.h>
 
 #include "backend_wrappers.hpp"
+#include "queues_per_device.hpp"
 
 void CoCoSyncCheckErr(){
-  cudaError_t errSync = cudaDeviceSynchronize();
-  if (errSync != cudaSuccess)
-    printf("Sync kernel error: %s\n", cudaGetErrorString(errSync));
+  DeviceSynchronize();
+//   if (errSync != cudaSuccess)
+//     printf("Sync kernel error: %s\n", cudaGetErrorString(errSync));
 }
 
 void CoCoASyncCheckErr(){

@@ -55,7 +55,7 @@ file(MAKE_DIRECTORY ${UNIHELP_INSTALL_INC})
 #FIXME: Current CoCoPeLia version only work with lazy events.
 add_definitions(-DENABLE_LAZY_EVENTS)
 
-if (${BACKEND} STREQUAL "CuCuBLAS" OR ${BACKEND} STREQUAL "Pthreads")
+if (${BACKEND} STREQUAL "CuCuBLAS")
 	if(${BUILD_BLAS_WRAPPERS_FLAG} EQUAL 1)
 
 		add_library(unihelpers SHARED
@@ -71,6 +71,34 @@ if (${BACKEND} STREQUAL "CuCuBLAS" OR ${BACKEND} STREQUAL "Pthreads")
 		add_library(unihelpers SHARED
 		${UNIHELP_DIR_SRC}/general_utils.cpp
 		${UNIHELP_DIR_SRC}/data_management.cpp    
+		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
+		)
+	endif()
+
+	message("Universal Helpers - INTERNAL_LINK_LIB: " ${INTERNAL_LINK_LIB} )
+	message("Universal Helpers - OPENBLAS_LINK: " ${OPENBLAS_LINK} )
+	target_link_libraries(unihelpers ${INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
+
+elseif(${BACKEND} STREQUAL "Pthreads")
+	if(${BUILD_BLAS_WRAPPERS_FLAG} EQUAL 1)
+
+		add_library(unihelpers SHARED
+		${UNIHELP_DIR_SRC}/general_utils.cpp
+		${UNIHELP_DIR_SRC}/data_management.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/queues_per_device.cu 
+		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cu
+		)
+	else()
+		add_library(unihelpers SHARED
+		${UNIHELP_DIR_SRC}/general_utils.cpp
+		${UNIHELP_DIR_SRC}/data_management.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/queues_per_device.cu    
 		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
 		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
 		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
