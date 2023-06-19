@@ -380,7 +380,10 @@ void Event::sync_barrier()
 		}
 		else{
 			pthread_event_p event_p = (pthread_event_p) event_backend_ptr;
-			while(event_p->estate < COMPLETE){;
+			#ifdef DEBUG
+				lprintf(lvl, "|-----> Event(%p)::sync_barrier() started waiting... state = %s\n", this, print_event_status(event_p->estate));
+			#endif
+			while(query_status() < COMPLETE){;
 				#ifdef UDDEBUG
 					lprintf(lvl, "[dev_id=%3d] ------- Event(%d)::sync_barrier() waiting... state = %s\n", dev_id, id, print_event_status(event_p->estate));
 				#endif
@@ -390,6 +393,9 @@ void Event::sync_barrier()
 				status = CHECKED;
 				event_p->estate = CHECKED;
 			}
+			#ifdef DEBUG
+				lprintf(lvl, "|-----> Event(%p)::sync_barrier() done waiting... state = %s\n", this, print_event_status(event_p->estate));
+			#endif
 		}
 	}
 	//release_lock();
