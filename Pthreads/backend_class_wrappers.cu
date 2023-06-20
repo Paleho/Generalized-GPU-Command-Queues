@@ -126,6 +126,9 @@ void* taskExecLoop(void * args)
 /// Command queue class functions
 CommandQueue::CommandQueue(int dev_id_in)
 {
+#ifdef DEBUG
+	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::CommandQueue()\n", dev_id_in);
+#endif
 	int prev_dev_id = CoCoPeLiaGetDevice();
 	dev_id = dev_id_in;
 	CoCoPeLiaSelectDevice(dev_id);
@@ -133,9 +136,6 @@ CommandQueue::CommandQueue(int dev_id_in)
 		InitializeQueuesPerDevice();
 	}
 	AssignQueueToDevice(this, dev_id);
-#ifdef UDDEBUG
-	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::CommandQueue()\n", dev_id_in);
-#endif
 	if(prev_dev_id != dev_id){;
 #ifdef UDEBUG
 		lprintf(lvl, "[dev_id=%3d] ------- CommandQueue::CommandQueue(): Called for other dev_id = %d\n",
@@ -177,7 +177,7 @@ CommandQueue::CommandQueue(int dev_id_in)
 	// std::cout << "CommandQueue::CommandQueue: Queue constructor complete. Thread id = " << data->threadId << std::endl;
 
 	CoCoPeLiaSelectDevice(prev_dev_id);
-#ifdef UDDEBUG
+#ifdef DEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::CommandQueue()\n", dev_id);
 #endif
 }
