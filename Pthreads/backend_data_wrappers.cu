@@ -251,17 +251,6 @@ void CoCoMemcpy2D(void* dest, long int ldest, void* src, long int ldsrc, long in
 	return;
 }
 
-void CoCMempy2DAsyncWrap3D(void* dest, long int ldest, void* src, long int ldsrc, long int rows, long int cols, short elemSize, short loc_dest, short loc_src, CQueue_p transfer_queue){
-	// Convert 2d input (as CoCoMemcpy2DAsync) to 3D for ...reasons.
-	enum cudaMemcpyKind kind = cudaMemcpyDefault;
-	cudaStream_t stream = *((cudaStream_t*)transfer_queue->cqueue_backend_ptr);
-	cudaMemcpy3DParms* cudaMemcpy3DParms_p = (cudaMemcpy3DParms*) calloc(1, sizeof(cudaMemcpy3DParms));
-	cudaMemcpy3DParms_p->extent = make_cudaExtent(rows*elemSize, cols, 1);
-	cudaMemcpy3DParms_p->srcPtr = make_cudaPitchedPtr (src, ldsrc*elemSize, rows, cols );
-	cudaMemcpy3DParms_p->dstPtr = make_cudaPitchedPtr (dest, ldest*elemSize, rows, cols );
-	massert(cudaSuccess == cudaMemcpy3DAsync ( cudaMemcpy3DParms_p, stream) , "cudaMemcpy3DAsync failed\n");
-}
-
 typedef struct CoCoMemcpy2D_data
 {
 	queue_data_p q_data;
