@@ -35,6 +35,17 @@ inline void release_lock(){
 	;
 }
 
+int queueConstructor_lock = 0;
+
+inline void get_queueConstructor_lock(){
+	while(__sync_lock_test_and_set (&queueConstructor_lock, 1)){
+		;
+	}
+}
+inline void release_queueConstructor_lock(){
+	__sync_lock_release(&queueConstructor_lock);
+}
+
 /*****************************************************/
 /// Event Status-related functions
 
@@ -126,6 +137,7 @@ void* taskExecLoop(void * args)
 /// Command queue class functions
 CommandQueue::CommandQueue(int dev_id_in)
 {
+	get_queueConstructor_lock();
 #ifdef DEBUG
 	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::CommandQueue()\n", dev_id_in);
 #endif
@@ -147,14 +159,14 @@ CommandQueue::CommandQueue(int dev_id_in)
 		lprintf(lvl, "[dev_id=%3d] ------- CommandQueue::CommandQueue(%d): Initializing simple queue\n", dev_id);
 #endif
 	// Create stream pool
-	cudaStream_t* stream_pool = (cudaStream_t*)malloc(STREAM_POOL_SZ * sizeof(cudaStream_t));
+	cudaStream_t* stream_pool = new cudaStream_t[STREAM_POOL_SZ]();
 	for(int i = 0; i < STREAM_POOL_SZ; i++){
 		cudaError_t err = cudaStreamCreate(&stream_pool[i]);
 		massert(cudaSuccess == err, "CommandQueue::CommandQueue(%d) - %s\n", dev_id, cudaGetErrorString(err));
 	}
 
 	// Create cublas handle
-	cublasHandle_t* handle_p = (cublasHandle_t*)malloc(sizeof(cublasHandle_t));
+	cublasHandle_t* handle_p = new cublasHandle_t();
 	massert(CUBLAS_STATUS_SUCCESS == cublasCreate(handle_p),
 		"CommandQueue::CommandQueue(%d): cublasCreate failed\n", dev_id);
 
@@ -180,6 +192,7 @@ CommandQueue::CommandQueue(int dev_id_in)
 #ifdef DEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::CommandQueue()\n", dev_id);
 #endif
+	release_queueConstructor_lock();
 }
 
 CommandQueue::~CommandQueue()
@@ -209,8 +222,11 @@ CommandQueue::~CommandQueue()
 		cudaError_t err = cudaStreamDestroy(backend_d->stream_pool[i]);
 		massert(cudaSuccess == err, "CommandQueue::CommandQueue - cudaStreamDestroy: %s\n", cudaGetErrorString(err));
 	}
+	delete [] backend_d->stream_pool;
+
 	massert(CUBLAS_STATUS_SUCCESS == cublasDestroy(*(backend_d->handle_p)),
 		"CommandQueue::~CommandQueue - cublasDestroy(handle) failed\n");
+	delete backend_d->handle_p;
 
 	delete(task_queue_p);
 	delete(backend_d);
@@ -383,7 +399,7 @@ void Event::sync_barrier()
 			#ifdef DEBUG
 				lprintf(lvl, "|-----> Event(%p)::sync_barrier() started waiting... state = %s\n", this, print_event_status(event_p->estate));
 			#endif
-			while(query_status() < COMPLETE){;
+			while(query_status() == RECORDED){;
 				#ifdef UDDEBUG
 					lprintf(lvl, "[dev_id=%3d] ------- Event(%d)::sync_barrier() waiting... state = %s\n", dev_id, id, print_event_status(event_p->estate));
 				#endif
@@ -454,10 +470,14 @@ void Event::record_to_queue(CQueue_p Rr){
 #endif
 	pthread_event_p event_p = (pthread_event_p) event_backend_ptr;
 	if(event_p->estate != UNRECORDED) {
-		error("Event(%d,dev_id = %d)::record_to_queue(%d): Recording %s event\n",
+		#ifdef UDEBUG
+		warning("Event(%d,dev_id = %d)::record_to_queue(%d): Recording %s event\n",
 			id, dev_id, Rr->dev_id, print_event_status(status));
-		release_lock();
-		return;
+		#endif
+
+		if(Rr->dev_id != dev_id)
+			error("Event(%d,dev_id = %d)::record_to_queue(%d): Recording %s event in iligal dev\n",
+				id, dev_id, Rr->dev_id, print_event_status(status));
 	}
 
 	event_p->estate = RECORDED;

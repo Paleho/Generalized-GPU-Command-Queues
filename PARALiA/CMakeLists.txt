@@ -36,7 +36,7 @@ add_definitions(-DMAX_BACKEND_L=8)
 add_definitions(-DENABLE_SEND_RECV_OVERLAP)
 
 ## Enable using the CPU as an extra device for part of the total workload, if applicable
-# add_definitions(-DENABLE_CPU_WORKLOAD)
+add_definitions(-DENABLE_CPU_WORKLOAD)
 
 ## Enable using a different parallel worker for scheduling each tile request
 #add_definitions(-DENABLE_PTHREAD_TILE_REQUEST)
@@ -131,10 +131,10 @@ add_definitions(-DFETCH_UNAVAILABLE_PENALTY=0.1)
 # add_definitions(-DTTEST)
 
 #Run in debug mode, which includes detailed function calls and info for error-checking
-add_definitions(-DDEBUG)
+# add_definitions(-DDEBUG)
 
 #Run in deep debug mode, for command-to-command debugging
-add_definitions(-DDDEBUG)
+# add_definitions(-DDDEBUG)
 
 #Run Simple Prediction debug mode (well-presented simple autotuner stuff)
 #add_definitions(-DSDEBUG)
