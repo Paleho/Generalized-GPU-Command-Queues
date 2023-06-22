@@ -251,10 +251,6 @@ void CommandQueue::sync_barrier()
 	while(queueIsBusy){
 		get_lock_q(&backend_d->queueLock);
 		queueIsBusy = task_queue_p->size() > 0;
-		if(!queueIsBusy){
-			for(int i = 0; i < STREAM_POOL_SZ; i++)
-				massert(cudaSuccess == cudaStreamSynchronize(backend_d->stream_pool[i]), "Error: while synchronizing stream %d\n", i);
-		}
 		release_lock_q(&backend_d->queueLock);
 	}
 
