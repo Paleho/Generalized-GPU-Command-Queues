@@ -14,7 +14,7 @@
 #include <unihelpers.hpp>
 
 
-#define STREAM_POOL_SZ 1
+#define STREAM_POOL_SZ 4
 
 // Queue lock
 inline void get_lock_q(int * lock){

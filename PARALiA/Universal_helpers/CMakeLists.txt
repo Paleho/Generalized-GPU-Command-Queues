@@ -5,10 +5,6 @@ set (HIPBLAS_LD ${HIPBLAS_PREFIX}/lib)
 set (HIPBLAS_LINK  "-L${HIPBLAS_LD} -lhipblas" )
 message("Universal Helpers - HIPBLAS_LINK: " ${HIPBLAS_LINK} )
 
-set(PROJECT_VERSION "1.0")
-message("Universal Helpers - PROJECT_VERSION: " ${PROJECT_VERSION})
-add_definitions(-DVERSION="${PROJECT_VERSION}")
-
 ### Initialize the project
 project (CoCopeLia-Helpers VERSION ${PROJECT_VERSION} DESCRIPTION "Universal Helper function lib for CoCoPeLia" LANGUAGES CXX CUDA)
 message( "------------------------------------------------------------------------------------------------")

@@ -102,9 +102,6 @@ void* taskExecLoop(void * args)
 					std::cout << outMsg.str();
 				#endif
 
-				for(int i = 0; i < STREAM_POOL_SZ; i++)
-					massert(cudaSuccess == cudaStreamSynchronize(thread_data->stream_pool[i]), "Error: while synchronizing stream %d\n", i);
-
 				get_lock_q(&thread_data->queueLock);
 				if(task_queue_p->size() > 0)
 					task_queue_p->pop();
