@@ -163,6 +163,8 @@ elseif(${BACKEND} STREQUAL "Pthreads")
 
 		add_library(unihelpers SHARED
 		${UNIHELP_DIR_SRC}/general_utils.cpp
+		${UNIHELP_DIR_SRC}/data_management.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/queues_per_device.cu
 		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
 		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
 		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
@@ -172,6 +174,8 @@ elseif(${BACKEND} STREQUAL "Pthreads")
 	else()
 		add_library(unihelpers SHARED
 		${UNIHELP_DIR_SRC}/general_utils.cpp
+		${UNIHELP_DIR_SRC}/data_management.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/queues_per_device.cu
 		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
 		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
 		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu

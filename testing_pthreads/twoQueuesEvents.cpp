@@ -50,10 +50,10 @@ int main(){
     Q_mults_p->wait_for_event(add3_complete);
     Q_mults_p->add_host_func((void*) &taskFun_Mult, (void*) &input);
 
-    cout << "MAIN: all tasks added" << endl;
+    std::cout << "MAIN: all tasks added" << std::endl;
 
     Q_mults_p->sync_barrier();
-    cout << "MAIN: synched" << endl;
+    std::cout << "MAIN: synched" << std::endl;
 
     delete(Q_adds_p);
     delete(Q_mults_p);
@@ -62,6 +62,6 @@ int main(){
     delete(add2_complete);
     delete(mul2_complete);
     delete(add3_complete);
-    cout << "Main: final result = " << input << endl;
+    std::cout << "Main: final result = " << input << std::endl;
     return 0;
 }

@@ -4,7 +4,7 @@
 // Some dummy task function
 void* taskFun(void* input){
     int * x = (int*) input;
-    cout << "taskFun: input = " << *x << endl;
+    std::cout << "taskFun: input = " << *x << std::endl;
 
     *x += 1000;
 
@@ -13,7 +13,7 @@ void* taskFun(void* input){
 
 void* taskFunDouble(void* input){
     int * x = (int*) input;
-    cout << "taskFun: input = " << *x << endl;
+    std::cout << "taskFun: input = " << *x << std::endl;
 
     *x *= 2;
 
@@ -39,7 +39,7 @@ int main(){
 
     Q1_p->sync_barrier();
     Q2_p->sync_barrier();
-    cout << "Main: After sync barrier" << endl;
+    std::cout << "Main: After sync barrier" << std::endl;
 
 
     Q1_p->add_host_func((void*) &taskFun, (void*) &input);
@@ -48,6 +48,6 @@ int main(){
 
     delete(Q1_p);
     delete(Q2_p);
-    cout << "Main: final result = " << input << endl;
+    std::cout << "Main: final result = " << input << std::endl;
     return 0;
 }
