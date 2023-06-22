@@ -265,7 +265,7 @@ void CommandQueue::sync_barrier()
 #endif
 }
 
-void CommandQueue::add_host_func(void* func, void* data, std::string name, std::string caller){
+void CommandQueue::add_host_func(void* func, void* data){
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::add_host_func() getting lock\n", dev_id);
 #endif
@@ -279,7 +279,6 @@ void CommandQueue::add_host_func(void* func, void* data, std::string name, std::
 	task_p->func = func;
 	task_p->data = data;
 	task_p->function_name = name;
-	// if(name.compare("Default_name") == 0) std::cout << "CommandQueue::add_host_func() called with default function name from caller = " << caller << "\n";
 
 	queue_data_p backend_d = (queue_data_p) cqueue_backend_data;
 
@@ -324,7 +323,7 @@ void CommandQueue::wait_for_event(Event_p Wevent)
 		#ifdef DDEBUG
 			lprintf(lvl, "CommandQueue::wait_for_event event = %p (status = %s) : queue = %p\n", Wevent, print_event_status(Wevent->query_status()), this);
 		#endif
-		add_host_func((void*) &blockQueue, (void*) Wevent, "blockQueue");
+		add_host_func((void*) &blockQueue, (void*) Wevent);
 	}
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::wait_for_event(Event(%d))\n", dev_id, Wevent->id);
@@ -487,7 +486,7 @@ void Event::record_to_queue(CQueue_p Rr){
 	}
 	release_lock();
 
-	Rr->add_host_func((void*) &eventFunc, (void*) event_p, "eventFunc");
+	Rr->add_host_func((void*) &eventFunc, (void*) event_p);
 #ifdef DDEBUG
 	lprintf(lvl, "Event(%p)::record_to_queue(Queue = %p)\n", this, Rr);
 #endif
