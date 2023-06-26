@@ -151,6 +151,44 @@ CommandQueue::CommandQueue(int dev_id_in)
 			dev_id, prev_dev_id);
 #endif
 	}
+
+#ifdef ENABLE_PARALLEL_BACKEND
+#ifdef UDEBUG
+		lprintf(lvl, "[dev_id=%3d] ------- CommandQueue::CommandQueue(): Initializing parallel queue with %d Backend workers\n",
+		dev_id, MAX_BACKEND_L);
+#endif
+	backend_ctr = 0;
+	for (int par_idx = 0; par_idx < MAX_BACKEND_L; par_idx++ ){
+		// create one stream pool per queue
+		cudaStream_t* stream_pool = new cudaStream_t[STREAM_POOL_SZ]();
+		for(int i = 0; i < STREAM_POOL_SZ; i++){
+			cudaError_t err = cudaStreamCreate(&stream_pool[i]);
+			massert(cudaSuccess == err, "CommandQueue::CommandQueue(%d) - %s\n", dev_id, cudaGetErrorString(err));
+		}
+
+		// create one cublas handle per queue
+		cublasHandle_t* handle_p = new cublasHandle_t();
+		massert(CUBLAS_STATUS_SUCCESS == cublasCreate(handle_p),
+			"CommandQueue::CommandQueue(%d): cublasCreate failed\n", dev_id);
+
+		// create each queue
+		std::queue<pthread_task_p>* task_queue = new std::queue<pthread_task_p>;
+		cqueue_backend_ptr[par_idx] = (void *) task_queue;
+
+		// create data for each queue
+		queue_data_p data = new queue_data;	
+		data->taskQueue = (void *) task_queue;
+		data->queueLock = 0; // initialize queue lock
+		data->terminate = false;
+		data->stream_pool = stream_pool;
+		data->stream_ctr = 0;
+		data->handle_p = handle_p;
+		cqueue_backend_data[par_idx] = (void*) data;
+
+		// launch one thread per queue
+		if(pthread_create(&(data->threadId), NULL, taskExecLoop, data)) error("CommandQueue::CommandQueue: pthread_create failed\n");
+	}
+#else
 	
 #ifdef UDEBUG
 		lprintf(lvl, "[dev_id=%3d] ------- CommandQueue::CommandQueue(%d): Initializing simple queue\n", dev_id);
@@ -181,10 +219,9 @@ CommandQueue::CommandQueue(int dev_id_in)
 	cqueue_backend_data = (void*) data;
 
 	// Spawn thread that loops over queue and executes tasks
-	if(pthread_create(&(data->threadId), NULL, taskExecLoop, data)) std::cout << "Error: CommandQueue::CommandQueue: pthread_create failed" << std::endl;
+	if(pthread_create(&(data->threadId), NULL, taskExecLoop, data)) error("CommandQueue::CommandQueue: pthread_create failed\n");
 
-	// std::cout << "CommandQueue::CommandQueue: Queue constructor complete. Thread id = " << data->threadId << std::endl;
-
+#endif
 	CoCoPeLiaSelectDevice(prev_dev_id);
 #ifdef DEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::CommandQueue()\n", dev_id);
@@ -200,6 +237,42 @@ CommandQueue::~CommandQueue()
 	sync_barrier();
 	CoCoPeLiaSelectDevice(dev_id);
 	UnassignQueueFromDevice(this, dev_id);
+
+#ifdef ENABLE_PARALLEL_BACKEND
+	for (int par_idx = 0; par_idx < MAX_BACKEND_L; par_idx++ ){
+		// get each queue's data
+		queue_data_p backend_d = (queue_data_p) cqueue_backend_data[par_idx];
+
+		for(int i = 0; i < STREAM_POOL_SZ; i++){
+			massert(cudaSuccess == cudaStreamQuery(backend_d->stream_pool[i]), "CommandQueue::~CommandQueue: Found stream with pending work\n");
+		}
+
+		// set terminate for each thread and join them
+		get_lock_q(&backend_d->queueLock);
+		backend_d->terminate = true;
+		release_lock_q(&backend_d->queueLock);
+
+		if(pthread_join(backend_d->threadId, NULL)) error("CommandQueue::~CommandQueue: pthread_join failed\n");
+
+		// destroy stream pool
+		std::queue<pthread_task_p> * task_queue_p = (std::queue<pthread_task_p> *)cqueue_backend_ptr[par_idx];
+
+		for(int i = 0; i < STREAM_POOL_SZ; i++){
+			massert(cudaSuccess == cudaStreamQuery(backend_d->stream_pool[i]), "About to destroy stream with pending work\n");
+			cudaError_t err = cudaStreamDestroy(backend_d->stream_pool[i]);
+			massert(cudaSuccess == err, "CommandQueue::CommandQueue - cudaStreamDestroy: %s\n", cudaGetErrorString(err));
+		}
+		delete [] backend_d->stream_pool;
+
+		// destroy handle
+		massert(CUBLAS_STATUS_SUCCESS == cublasDestroy(*(backend_d->handle_p)), "CommandQueue::~CommandQueue - cublasDestroy(handle) failed\n");
+		delete backend_d->handle_p;
+
+		// delete each queue
+		delete(task_queue_p);
+		delete(backend_d);
+	}
+#else
 
 	queue_data_p backend_d = (queue_data_p) cqueue_backend_data;
 	for(int i = 0; i < STREAM_POOL_SZ; i++){
@@ -227,6 +300,7 @@ CommandQueue::~CommandQueue()
 
 	delete(task_queue_p);
 	delete(backend_d);
+#endif
 
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::~CommandQueue()\n", dev_id);
@@ -234,11 +308,40 @@ CommandQueue::~CommandQueue()
 	return;
 }
 
+double total_sync_time = 0;
+double avg_sync_time = 0;
+int sync_calls = 0;
+int sync_lock = 0;
+inline void get_sync_lock(){
+	while(__sync_lock_test_and_set (&sync_lock, 1));
+}
+inline void release_sync_lock(){
+	__sync_lock_release(&sync_lock);
+}
 void CommandQueue::sync_barrier()
 {
+	std::chrono::steady_clock::time_point t_start = std::chrono::steady_clock::now();
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::sync_barrier()\n", dev_id);
 #endif
+
+#ifdef ENABLE_PARALLEL_BACKEND
+	for (int par_idx = 0; par_idx < MAX_BACKEND_L; par_idx++ ){
+		// get queue and data
+		std::queue<pthread_task_p> * task_queue_p = (std::queue<pthread_task_p> *)cqueue_backend_ptr[par_idx];
+		queue_data_p backend_d = (queue_data_p) cqueue_backend_data[par_idx];
+
+		// wait each queue
+		// TODO: this may be problematic
+		bool queueIsBusy = true;
+		// busy wait until task queue is empty
+		while(queueIsBusy){
+			get_lock_q(&backend_d->queueLock);
+			queueIsBusy = task_queue_p->size() > 0;
+			release_lock_q(&backend_d->queueLock);
+		}
+	}
+#else
 
 	std::queue<pthread_task_p> * task_queue_p = (std::queue<pthread_task_p> *)cqueue_backend_ptr;
 	queue_data_p backend_d = (queue_data_p) cqueue_backend_data;
@@ -250,28 +353,52 @@ void CommandQueue::sync_barrier()
 		queueIsBusy = task_queue_p->size() > 0;
 		release_lock_q(&backend_d->queueLock);
 	}
-
-	// std::cout << "CommandQueue::sync_barrier: sync_barrier complete" << std::endl;
+#endif
 
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::sync_barrier()\n", dev_id);
 #endif
+
+	std::chrono::steady_clock::time_point t_finish = std::chrono::steady_clock::now();
+
+	double elapsed_us = (double) std::chrono::duration_cast<std::chrono::microseconds>(t_finish - t_start).count();
+
+	get_sync_lock();
+	sync_calls++;
+	total_sync_time += elapsed_us;
+	avg_sync_time = total_sync_time / sync_calls;
+	release_sync_lock();
+	lprintf(lvl, "CommandQueue::sync_barrier() avg sync time (us) = %lf\n", avg_sync_time);
 }
 
 void CommandQueue::add_host_func(void* func, void* data){
-#ifdef UDDEBUG
-	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::add_host_func() getting lock\n", dev_id);
-#endif
 	get_lock();
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] ------- CommandQueue::add_host_func()\n", dev_id);
 #endif
 
+#ifdef ENABLE_PARALLEL_BACKEND
+	// get current task queue
+	std::queue<pthread_task_p> * task_queue_p = (std::queue<pthread_task_p> *)cqueue_backend_ptr[backend_ctr];
+
+	// create task
+	pthread_task_p task_p = new pthread_task;
+	task_p->func = func;
+	task_p->data = data;
+
+	// get queue data
+	queue_data_p backend_d = (queue_data_p) cqueue_backend_data[backend_ctr];
+
+	// add task
+	get_lock_q(&backend_d->queueLock);
+	task_queue_p->push(task_p);
+	release_lock_q(&backend_d->queueLock);
+#else
+
 	std::queue<pthread_task_p> * task_queue_p = (std::queue<pthread_task_p> *)cqueue_backend_ptr;
 	pthread_task_p task_p = new pthread_task;
 	task_p->func = func;
 	task_p->data = data;
-	task_p->function_name = name;
 
 	queue_data_p backend_d = (queue_data_p) cqueue_backend_data;
 
@@ -279,6 +406,7 @@ void CommandQueue::add_host_func(void* func, void* data){
 	get_lock_q(&backend_d->queueLock);
 	task_queue_p->push(task_p);
 	release_lock_q(&backend_d->queueLock);
+#endif
 
 	release_lock();
 
@@ -323,6 +451,39 @@ void CommandQueue::wait_for_event(Event_p Wevent)
 #endif
 	return;
 }
+
+#ifdef ENABLE_PARALLEL_BACKEND
+int CommandQueue::request_parallel_backend()
+{
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::request_parallel_backend()\n", dev_id);
+#endif
+	get_lock();
+	if (backend_ctr == MAX_BACKEND_L - 1) backend_ctr = 0;
+	else backend_ctr++;
+	int tmp_backend_ctr = backend_ctr;
+	release_lock();
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::request_parallel_backend() = %d\n", dev_id, tmp_backend_ctr);
+#endif
+	return tmp_backend_ctr;
+}
+
+void CommandQueue::set_parallel_backend(int backend_ctr_in)
+{
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::set_parallel_backend(%d)\n", dev_id, backend_ctr_in);
+#endif
+	get_lock();
+	backend_ctr = backend_ctr_in;
+	release_lock();
+#ifdef UDDEBUG
+	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::set_parallel_backend(%d)\n", dev_id, backend_ctr);
+#endif
+	return;
+}
+
+#endif
 
 void* eventFunc(void* event_data){
 	pthread_event_p event_p = (pthread_event_p) event_data;

@@ -25,7 +25,11 @@ void backend_run_operation(void* backend_data, const char* opname, CQueue_p run_
     else if(ptr_ker_translate->dev_id >= 0){
       // prepare data (add queue data)
       wider_backend_in_p wider_data = new wider_backend_in;
+#ifdef ENABLE_PARALLEL_BACKEND
+      wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data[run_queue->backend_ctr];
+#else
       wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data;
+#endif     
       wider_data->backend_data = backend_data;
 
       run_queue->add_host_func((void*)&cublas_wrap_dgemm, (void*)wider_data);
@@ -41,7 +45,11 @@ void backend_run_operation(void* backend_data, const char* opname, CQueue_p run_
     else if(ptr_ker_translate->dev_id >= 0){
       // prepare data (add queue data)
       wider_backend_in_p wider_data = new wider_backend_in;
+#ifdef ENABLE_PARALLEL_BACKEND
+      wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data[run_queue->backend_ctr];
+#else
       wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data;
+#endif
       wider_data->backend_data = backend_data;
 
       run_queue->add_host_func((void*)&cublas_wrap_dgemv, (void*)wider_data);
@@ -54,7 +62,11 @@ void backend_run_operation(void* backend_data, const char* opname, CQueue_p run_
     else if(ptr_ker_translate->dev_id >= 0){
       // prepare data (add queue data)
       wider_backend_in_p wider_data = new wider_backend_in;
+#ifdef ENABLE_PARALLEL_BACKEND
+      wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data[run_queue->backend_ctr];
+#else
       wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data;
+#endif
       wider_data->backend_data = backend_data;
 
       run_queue->add_host_func((void*)&cublas_wrap_sgemm, (void*)wider_data);
@@ -67,7 +79,11 @@ void backend_run_operation(void* backend_data, const char* opname, CQueue_p run_
     else if(ptr_ker_translate->dev_id >= 0){
       // prepare data (add queue data)
       wider_backend_in_p wider_data = new wider_backend_in;
+#ifdef ENABLE_PARALLEL_BACKEND
+      wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data[run_queue->backend_ctr];
+#else
       wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data;
+#endif
       wider_data->backend_data = backend_data;
 
       run_queue->add_host_func((void*)&cublas_wrap_daxpy, (void*)wider_data);
@@ -84,7 +100,11 @@ void backend_run_operation(void* backend_data, const char* opname, CQueue_p run_
     else if(ptr_ker_translate->dev_id >= 0){
       // prepare data (add queue data)
       wider_backend_in_p wider_data = new wider_backend_in;
+#ifdef ENABLE_PARALLEL_BACKEND
+      wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data[run_queue->backend_ctr];
+#else
       wider_data->q_data = (queue_data_p) run_queue->cqueue_backend_data;
+#endif
       wider_data->backend_data = backend_data;
 
       run_queue->add_host_func((void*)&cublas_wrap_ddot, (void*)wider_data);

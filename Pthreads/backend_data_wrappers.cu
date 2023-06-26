@@ -213,7 +213,12 @@ void _CoCoMemcpyAsync(void* input)
 void CoCoMemcpyAsync(void* dest, void* src, long long bytes, short loc_dest, short loc_src, CQueue_p transfer_queue)
 {
 	CoCoMemcpy_data_p data = new CoCoMemcpy_data;
+
+#ifdef ENABLE_PARALLEL_BACKEND
+	data->q_data = (queue_data_p) transfer_queue->cqueue_backend_data[transfer_queue->backend_ctr];
+#else
 	data->q_data = (queue_data_p) transfer_queue->cqueue_backend_data;
+#endif
 	data->dest = dest;
 	data->src = src;
 	data->bytes = bytes;
@@ -316,7 +321,12 @@ void CoCoMemcpy2DAsync(void* dest, long int ldest, void* src, long int ldsrc, lo
 #endif
 
 	CoCoMemcpy2D_data_p data = new CoCoMemcpy2D_data;
+
+#ifdef ENABLE_PARALLEL_BACKEND
+	data->q_data = (queue_data_p) transfer_queue->cqueue_backend_data[transfer_queue->backend_ctr];
+#else
 	data->q_data = (queue_data_p) transfer_queue->cqueue_backend_data;
+#endif
 	data->dest = dest;
 	data->ldest = ldest;
 	data->src = src;
