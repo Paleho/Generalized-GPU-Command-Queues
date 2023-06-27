@@ -7,6 +7,7 @@
 #include <queue>
 #include <unihelpers.hpp>
 #include <sstream>
+#include <unistd.h>
 #include <backend_wrappers.hpp>
 #include "queues_per_device.hpp"
 
@@ -79,6 +80,7 @@ void* taskExecLoop(void * args)
 			break;
 		} 
 		else if(task_queue_p->size() > 0){
+			thread_data->busy = true;
 			for(int i = 0; i < STREAM_POOL_SZ; i++)
 				massert(cudaSuccess == cudaStreamQuery(thread_data->stream_pool[i]), "Error: Found stream with pending work\n");
 
@@ -123,7 +125,9 @@ void* taskExecLoop(void * args)
 			}
 		}
 		else{
+			thread_data->busy = false;
 			release_lock_q(&thread_data->queueLock);
+			usleep(1);
 		}
 	}
 
@@ -180,6 +184,7 @@ CommandQueue::CommandQueue(int dev_id_in)
 		data->taskQueue = (void *) task_queue;
 		data->queueLock = 0; // initialize queue lock
 		data->terminate = false;
+		data->busy = false;
 		data->stream_pool = stream_pool;
 		data->stream_ctr = 0;
 		data->handle_p = handle_p;
@@ -213,6 +218,7 @@ CommandQueue::CommandQueue(int dev_id_in)
 	data->taskQueue = (void *) task_queue;
 	data->queueLock = 0; // initialize queue lock
 	data->terminate = false;
+	data->busy = false;
 	data->stream_pool = stream_pool;
 	data->stream_ctr = 0;
 	data->handle_p = handle_p;
@@ -337,8 +343,9 @@ void CommandQueue::sync_barrier()
 		// busy wait until task queue is empty
 		while(queueIsBusy){
 			get_lock_q(&backend_d->queueLock);
-			queueIsBusy = task_queue_p->size() > 0;
+			queueIsBusy = backend_d->busy;
 			release_lock_q(&backend_d->queueLock);
+			usleep(3);
 		}
 	}
 #else
@@ -350,7 +357,7 @@ void CommandQueue::sync_barrier()
 	// busy wait until task queue is empty
 	while(queueIsBusy){
 		get_lock_q(&backend_d->queueLock);
-		queueIsBusy = task_queue_p->size() > 0;
+		queueIsBusy = backend_d->busy;
 		release_lock_q(&backend_d->queueLock);
 	}
 #endif

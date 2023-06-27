@@ -40,6 +40,7 @@ typedef struct queue_data {
     pthread_t threadId;
     int queueLock; 
     bool terminate;
+	bool busy;
     cudaStream_t * stream_pool;
     int stream_ctr;
     cublasHandle_t* handle_p;
