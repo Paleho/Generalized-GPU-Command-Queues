@@ -308,6 +308,8 @@ CommandQueue::~CommandQueue()
 	return;
 }
 
+#define TIME_SYNC 0
+#if TIME_SYNC
 double total_sync_time = 0;
 double avg_sync_time = 0;
 int sync_calls = 0;
@@ -318,9 +320,12 @@ inline void get_sync_lock(){
 inline void release_sync_lock(){
 	__sync_lock_release(&sync_lock);
 }
+#endif
 void CommandQueue::sync_barrier()
 {
+#if TIME_SYNC
 	std::chrono::steady_clock::time_point t_start = std::chrono::steady_clock::now();
+#endif
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::sync_barrier()\n", dev_id);
 #endif
@@ -359,6 +364,7 @@ void CommandQueue::sync_barrier()
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::sync_barrier()\n", dev_id);
 #endif
 
+#if TIME_SYNC
 	std::chrono::steady_clock::time_point t_finish = std::chrono::steady_clock::now();
 
 	double elapsed_us = (double) std::chrono::duration_cast<std::chrono::microseconds>(t_finish - t_start).count();
@@ -369,6 +375,7 @@ void CommandQueue::sync_barrier()
 	avg_sync_time = total_sync_time / sync_calls;
 	release_sync_lock();
 	lprintf(lvl, "CommandQueue::sync_barrier() avg sync time (us) = %lf\n", avg_sync_time);
+#endif
 }
 
 void CommandQueue::add_host_func(void* func, void* data){
