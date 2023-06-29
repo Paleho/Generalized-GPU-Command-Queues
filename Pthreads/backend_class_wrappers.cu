@@ -125,7 +125,13 @@ void* taskExecLoop(void * args)
 			}
 		}
 		else{
+			pthread_mutex_lock(&(thread_data->condition_lock));
+
 			thread_data->busy = false;
+
+			pthread_cond_broadcast(&(thread_data->condition_variable));
+			pthread_mutex_unlock(&(thread_data->condition_lock));
+
 			release_lock_q(&thread_data->queueLock);
 			usleep(1);
 		}
@@ -185,6 +191,8 @@ CommandQueue::CommandQueue(int dev_id_in)
 		data->queueLock = 0; // initialize queue lock
 		data->terminate = false;
 		data->busy = false;
+		pthread_mutex_init(&(data->condition_lock), 0);
+		pthread_cond_init(&(data->condition_variable), NULL);
 		data->stream_pool = stream_pool;
 		data->stream_ctr = 0;
 		data->handle_p = handle_p;
@@ -219,6 +227,8 @@ CommandQueue::CommandQueue(int dev_id_in)
 	data->queueLock = 0; // initialize queue lock
 	data->terminate = false;
 	data->busy = false;
+	pthread_mutex_init(&(data->condition_lock), 0);
+	pthread_cond_init(&(data->condition_variable), NULL);
 	data->stream_pool = stream_pool;
 	data->stream_ctr = 0;
 	data->handle_p = handle_p;
@@ -274,6 +284,9 @@ CommandQueue::~CommandQueue()
 		massert(CUBLAS_STATUS_SUCCESS == cublasDestroy(*(backend_d->handle_p)), "CommandQueue::~CommandQueue - cublasDestroy(handle) failed\n");
 		delete backend_d->handle_p;
 
+		pthread_mutex_destroy(&(backend_d->condition_lock));
+		pthread_cond_destroy(&(backend_d->condition_variable));
+
 		// delete each queue
 		delete(task_queue_p);
 		delete(backend_d);
@@ -303,6 +316,9 @@ CommandQueue::~CommandQueue()
 	massert(CUBLAS_STATUS_SUCCESS == cublasDestroy(*(backend_d->handle_p)),
 		"CommandQueue::~CommandQueue - cublasDestroy(handle) failed\n");
 	delete backend_d->handle_p;
+
+	pthread_mutex_destroy(&(backend_d->condition_lock));
+	pthread_cond_destroy(&(backend_d->condition_variable));
 
 	delete(task_queue_p);
 	delete(backend_d);
@@ -338,28 +354,33 @@ void CommandQueue::sync_barrier()
 		queue_data_p backend_d = (queue_data_p) cqueue_backend_data[par_idx];
 
 		// wait each queue
-		// TODO: this may be problematic
-		bool queueIsBusy = true;
-		// busy wait until task queue is empty
-		while(queueIsBusy){
-			get_lock_q(&backend_d->queueLock);
-			queueIsBusy = backend_d->busy;
-			release_lock_q(&backend_d->queueLock);
-			usleep(3);
+
+		// get_lock_q(&backend_d->queueLock);
+		pthread_mutex_lock(&(backend_d->condition_lock));
+		while (backend_d->busy){
+			// release_lock_q(&backend_d->queueLock);
+			pthread_cond_wait(&(backend_d->condition_variable), &(backend_d->condition_lock));
+			// get_lock_q(&backend_d->queueLock);
 		}
+		// release_lock_q(&backend_d->queueLock);
+		// queue is synchronized
+		pthread_mutex_unlock(&(backend_d->condition_lock));
 	}
 #else
 
 	std::queue<pthread_task_p> * task_queue_p = (std::queue<pthread_task_p> *)cqueue_backend_ptr;
 	queue_data_p backend_d = (queue_data_p) cqueue_backend_data;
 
-	bool queueIsBusy = true;
-	// busy wait until task queue is empty
-	while(queueIsBusy){
-		get_lock_q(&backend_d->queueLock);
-		queueIsBusy = backend_d->busy;
-		release_lock_q(&backend_d->queueLock);
+	// get_lock_q(&backend_d->queueLock);
+	pthread_mutex_lock(&(backend_d->condition_lock));
+	while (backend_d->busy){
+		// release_lock_q(&backend_d->queueLock);
+		pthread_cond_wait(&(backend_d->condition_variable), &(backend_d->condition_lock));
+		// get_lock_q(&backend_d->queueLock);
 	}
+	// release_lock_q(&backend_d->queueLock);
+	// queue is synchronized
+	pthread_mutex_unlock(&(backend_d->condition_lock));
 #endif
 
 #ifdef UDDEBUG
