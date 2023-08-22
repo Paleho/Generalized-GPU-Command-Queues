@@ -300,3 +300,11 @@ long long sgemm_bytes(long int M, long int N, long int K){
 	return (M * K + K * N + M * N * 2)*sizeof(float) ;
 }
 */
+
+void CoCoSetTimerAsync(void* wrapped_timer_Ptr){
+  double* timer = (double*) wrapped_timer_Ptr;
+  *timer = csecond();
+#ifdef DEBUG
+  lprintf(6, "CoCoSetTimerAsync(%p) ran succesfully.\n", wrapped_timer_Ptr);
+#endif
+}

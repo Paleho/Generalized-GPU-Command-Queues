@@ -287,7 +287,8 @@ void* PARALiADgemmAgentVoid(void* kernel_pthread_wrapped){
 #endif
 
 #ifdef DEBUG
-	lprintf(lvl-1, "<-----|\n");
+	lprintf(lvl-1, "<-----| PARALiADgemmAgentVoid(gemm_subkernel_data: dev_id = %d)\n",
+		dev_id);
 #endif
 	return NULL;
 }
@@ -597,7 +598,7 @@ ATC_p PARALiADgemm(char TransA,  char TransB, long int M, long int N, long int K
 #ifdef DDEBUG
   A_asset->DrawTileMap();
   B_asset->DrawTileMap();
-	C_asset->DrawTileMap();
+  C_asset->DrawTileMap();
 #endif
 
 #ifdef CDEBUG
@@ -642,11 +643,12 @@ ATC_p PARALiADgemm(char TransA,  char TransB, long int M, long int N, long int K
 	cpu_timer = csecond();
 #endif
 
-	CoCoPeLiaSelectDevice(prev_dev_id);
+	 CoCoPeLiaSelectDevice(prev_dev_id);
 
-  A_asset->resetProperties();
-  B_asset->resetProperties();
-  C_asset->resetProperties();
+    A_asset->resetProperties();
+    B_asset->resetProperties();
+    C_asset->resetProperties();
+
 	delete A_asset;
 	delete B_asset;
 	delete C_asset;

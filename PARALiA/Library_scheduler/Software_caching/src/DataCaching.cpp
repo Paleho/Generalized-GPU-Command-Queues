@@ -444,6 +444,9 @@ BufferBlock::BufferBlock(int block_id, Buffer_p block_parent, long long block_si
 
 		PendingReaders = 0;
 		PendingWriters = 0;
+#ifdef DEBUG
+	lprintf(lvl-1, "BufferBlock(%p)::BufferBlock PendingReaders = %d\n", this, PendingReaders.load());
+#endif
 
 		Adrs = NULL; // Will be set by cache allocate.
 		State = INVALID;
@@ -534,6 +537,9 @@ void BufferBlock::add_reader(bool lockfree){
 		lock();
 	}
 	update_state(true);
+#ifdef DEBUG
+	lprintf(lvl-1, "|-----> BufferBlock(%p)::add_reader PendingReaders = %d\n", this, PendingReaders.load());
+#endif
 	if(State == INVALID)
 		error("[dev_id=%d] CacheBlock::add_reader(block_id=%d): Called to put reader on INVALID block\n", Parent->dev_id, id);
 	else if(State == AVAILABLE){
@@ -551,6 +557,9 @@ void BufferBlock::add_reader(bool lockfree){
 		Parent->InvalidQueue->unlock();
 		#endif
 	}
+#ifdef DEBUG
+	lprintf(lvl-1, "<-----| BufferBlock(%p)::add_reader added reader PendingReaders = %d\n", this, PendingReaders.load());
+#endif
 #ifdef CDEBUG
 	lprintf(lvl-1, "<-----| [dev_id=%d] BufferBlock::add_reader(block_id=%d)\n", Parent->dev_id, id);
 #endif
@@ -606,6 +615,10 @@ void BufferBlock::remove_reader(bool lockfree){
 	}
 	// update_state(true);
 	// if(State == SHARABLE || State == EXCLUSIVE || State == NATIVE){
+
+#ifdef DEBUG
+  lprintf(lvl-1, "BufferBlock(%p)::remove_reader PendingReaders = %d\n", this, PendingReaders.load());
+#endif
 	if(PendingReaders.load()>0){
 		PendingReaders--;
 	}
@@ -779,6 +792,11 @@ void BufferBlock::reset(bool lockfree, bool forceReset){
 			lock();
 		}
 		PendingReaders = 0;
+
+#ifdef DEBUG
+  lprintf(lvl-1, "BufferBlock(%p)::reset PendingReaders = %d (State = %s, forceReset = %d\n", this, PendingReaders.load(), print_state(State), forceReset);
+#endif
+
 		PendingWriters = 0;
 		free(WritebackData_p);
 		WritebackData_p = NULL;

@@ -122,19 +122,19 @@ add_definitions(-DFETCH_UNAVAILABLE_PENALTY=0.1)
 #add_definitions(-DTEST)
 
 #Run in Subkernel testing mode : details about time spend in subkernel operations.
-#add_definitions(-DSTEST)
+# add_definitions(-DSTEST)
 
 #Run in Deep Subkernel testing mode : many details about time spend in subkernel operations.
 #add_definitions(-DDSTEST)
 
 #Run in Link Hop testing mode; transfers using link hops are logged and timed.
-#add_definitions(-DTTEST)
+# add_definitions(-DTTEST)
 
 #Run in debug mode, which includes detailed function calls and info for error-checking
-#add_definitions(-DDEBUG)
+# add_definitions(-DDEBUG)
 
 #Run in deep debug mode, for command-to-command debugging
-#add_definitions(-DDDEBUG)
+# add_definitions(-DDDEBUG)
 
 #Run Simple Prediction debug mode (well-presented simple autotuner stuff)
 #add_definitions(-DSDEBUG)
@@ -152,7 +152,7 @@ add_definitions(-DFETCH_UNAVAILABLE_PENALTY=0.1)
 #add_definitions(-DUDEBUG)
 
 #Run in unihelper deep debug mode, for unihelper-related debugging
-#add_definitions(-DUDDEBUG)
+# add_definitions(-DUDDEBUG)
 
 ## Define a name for the testbed, to be used for the whole framework setup
 set(TESTBED_NAME $ENV{PARALIA_SYSTEM})
@@ -182,7 +182,7 @@ if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES $ENV{PARALIA_CUDA_ARCH})
 endif()
 
-set (CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -w -O3")
+set (CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -w -O3 -g1")
 message("PARALiA-Framework - CMAKE_CUDA_FLAGS: " ${CMAKE_CUDA_FLAGS})
 
 set (CUDA_INCLUDE_DIRS ${CUDA_PREFIX}/include ${CUDA_PREFIX}/samples/common/inc)
@@ -211,7 +211,7 @@ else()
 endif()
 
 set (CUDA_LD ${CUDA_PREFIX}/lib64) # or /lib depending on system
-set (CUDA_LINK "-L${CUDA_LD} -lcudart -lcublas -lcurand -lcuda")
+set (CUDA_LINK "-L${CUDA_LD} -lcudart -lcublas -lcurand $ENV{PARALIA_CUDA_LOAD_COMMAND}")
 message("PARALiA-Framework - CUDA_LINK: " ${CUDA_LINK} )
 
 if(${BACKEND} STREQUAL "HIP")
@@ -247,7 +247,7 @@ if(NOT $ENV{PARALIA_CXX_PREFIX} STREQUAL "default")
   set (CMAKE_C_COMPILER ${CXX_PREFIX}/bin/gcc)
 endif()
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp -lm -Wuninitialized")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp -lm  -g1 -Wuninitialized")
 message("PARALiA-Framework - CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
 
 #set(CMAKE_C_FLAGS ${CMAKE_CXX_FLAGS})
@@ -266,7 +266,7 @@ message("PARALiA-Framework - OPENBLAS_LINK: " ${OPENBLAS_LINK})
 
 #---------------------------------------------Start Project-----------------------------------------------------#
 
-project (PARALiA-Framework VERSION ${PROJECT_VERSION} DESCRIPTION "The complete PARALiA Framework")
+project (PARALiA-Framework VERSION ${PROJECT_VERSION} DESCRIPTION "The complete PARALiA Framework" LANGUAGES CUDA CXX)
 
 if($ENV{PARALIA_INSTALL_PREFIX} STREQUAL "default")
   message("PARALiA-Framework - PARALIA_INSTALL_PREFIX not provided, project will be installed under build dir.")

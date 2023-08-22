@@ -1121,7 +1121,7 @@ void Subkernel::writeback_data_hops(){
 	CoCoSyncCheckErr();
 #endif
 #ifdef DEBUG
-	lprintf(lvl-1, "<-----|\n");
+	lprintf(lvl-1, "<-----|Subkernel(dev=%d,id=%d)::writeback_data_hops()\n", run_dev_id, id);
 #endif
 }
 #endif
@@ -2003,6 +2003,7 @@ void STEST_print_SK(kernel_pthread_wrap_p* thread_dev_data_list, double routine_
 
 #ifdef TTEST
 	HopMemcpyPrint();
+	n_HopMemcpyPrint();
 #endif
 	lprintf(0, "\n");
 	lprintf(0,"\nSum-up R-Tiles:\n");

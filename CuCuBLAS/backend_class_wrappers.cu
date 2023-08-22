@@ -206,6 +206,10 @@ void CommandQueue::wait_for_event(Event_p Wevent)
 #endif
 		cudaEvent_t cuda_event= *(cudaEvent_t*) Wevent->event_backend_ptr;
 		release_lock();
+
+#ifdef DDEBUG
+	lprintf(lvl, "CommandQueue::wait_for_event event = %p (status = %s) : queue = %p\n", Wevent, print_event_status(Wevent->query_status()), this);
+#endif
 		cudaError_t err = cudaStreamWaitEvent(stream, cuda_event, 0); // 0-only parameter = future NVIDIA masterplan?
 		massert(cudaSuccess == err, "CommandQueue::wait_for_event - %s\n", cudaGetErrorString(err));
 	}
@@ -383,6 +387,10 @@ void Event::record_to_queue(CQueue_p Rr){
 	if (Rr->dev_id != prev_dev_id){
 		cudaSetDevice(prev_dev_id);
 	}
+	
+#ifdef DDEBUG
+	lprintf(lvl, "Event(%p)::record_to_queue(Queue = %p)\n", this, Rr);
+#endif
 	release_lock();
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| Event(%d)::record_to_queue(Queue(dev_id=%d))\n", dev_id, id, Rr->dev_id);

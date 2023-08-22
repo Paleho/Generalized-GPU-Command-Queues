@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.10)
 
-## Define a name for the backend library wrappers/implementations used in this build, Currently implemented with CuCuBLAS(==CUDA+CUBLAS) and HIP
+## Define a name for the backend library wrappers/implementations used in this build, Currently implemented with CuCuBLAS(==CUDA+CUBLAS), Pthreads and HIP
 # set(BACKEND "CuCuBLAS")
 message("Universal Helpers - BACKEND: " ${BACKEND})
 add_definitions(-DBACKEND="${BACKEND}")
@@ -125,6 +125,7 @@ add_definitions(-DVERSION="${PROJECT_VERSION}")
 project (CoCopeLia-Helpers VERSION ${PROJECT_VERSION} DESCRIPTION "Universal Helper function lib for CoCoPeLia" LANGUAGES CXX CUDA)
 message( "------------------------------------------------------------------------------------------------")
 message( "Universal Helpers - PROJECT_SOURCE_DIR: " ${PROJECT_SOURCE_DIR} )
+#message( "Universal Helpers - CMAKE_CURRENT_SOURCE_DIR: " ${CMAKE_CURRENT_SOURCE_DIR} )
 
 set ( UNIHELP_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
 message( "Universal Helpers - UNIHELP_DIR: " ${UNIHELP_DIR} )
@@ -165,7 +166,6 @@ file(MAKE_DIRECTORY ${UNIHELP_INSTALL})
 set (UNIHELP_INSTALL_LIB ${UNIHELP_INSTALL}/lib)
 file(MAKE_DIRECTORY ${UNIHELP_INSTALL_LIB})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${UNIHELP_INSTALL_LIB})
-message("Universal Helpers - CMAKE_LIBRARY_OUTPUT_DIRECTORY: " ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 set (UNIHELP_INSTALL_INC ${UNIHELP_INSTALL}/include)
 file(MAKE_DIRECTORY ${UNIHELP_INSTALL_INC})
