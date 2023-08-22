@@ -5,10 +5,6 @@ set (HIPBLAS_LD ${HIPBLAS_PREFIX}/lib)
 set (HIPBLAS_LINK  "-L${HIPBLAS_LD} -lhipblas" )
 message("Universal Helpers - HIPBLAS_LINK: " ${HIPBLAS_LINK} )
 
-set(PROJECT_VERSION "1.0")
-message("Universal Helpers - PROJECT_VERSION: " ${PROJECT_VERSION})
-add_definitions(-DVERSION="${PROJECT_VERSION}")
-
 ### Initialize the project
 project (CoCopeLia-Helpers VERSION ${PROJECT_VERSION} DESCRIPTION "Universal Helper function lib for CoCoPeLia" LANGUAGES CXX CUDA)
 message( "------------------------------------------------------------------------------------------------")
@@ -71,6 +67,34 @@ if (${BACKEND} STREQUAL "CuCuBLAS")
 		add_library(unihelpers SHARED
 		${UNIHELP_DIR_SRC}/general_utils.cpp
 		${UNIHELP_DIR_SRC}/data_management.cpp    
+		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
+		)
+	endif()
+
+	message("Universal Helpers - INTERNAL_LINK_LIB: " ${INTERNAL_LINK_LIB} )
+	message("Universal Helpers - OPENBLAS_LINK: " ${OPENBLAS_LINK} )
+	target_link_libraries(unihelpers ${INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
+
+elseif(${BACKEND} STREQUAL "Pthreads")
+	if(${BUILD_BLAS_WRAPPERS_FLAG} EQUAL 1)
+
+		add_library(unihelpers SHARED
+		${UNIHELP_DIR_SRC}/general_utils.cpp
+		${UNIHELP_DIR_SRC}/data_management.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/queues_per_device.cu 
+		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cu
+		)
+	else()
+		add_library(unihelpers SHARED
+		${UNIHELP_DIR_SRC}/general_utils.cpp
+		${UNIHELP_DIR_SRC}/data_management.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/queues_per_device.cu    
 		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
 		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
 		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu

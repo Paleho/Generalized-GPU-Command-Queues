@@ -30,7 +30,7 @@ add_definitions(-DUNIHELPER_LOCKFREE_ENABLE)
 ## Enable Running multiple backend operations in parallel for each queue
 add_definitions(-DENABLE_PARALLEL_BACKEND)
 ## The maximum allowed parallel backend operations per queue
-add_definitions(-DMAX_BACKEND_L=8)
+add_definitions(-DMAX_BACKEND_L=1)
 
 ## Enable overlapping Send & recv Communication
 add_definitions(-DENABLE_SEND_RECV_OVERLAP)
@@ -213,18 +213,27 @@ endif()
 set (CUDA_LD ${CUDA_PREFIX}/lib64) # or /lib depending on system
 set (CUDA_LINK "-L${CUDA_LD} -lcudart -lcublas -lcurand -lcuda")
 message("PARALiA-Framework - CUDA_LINK: " ${CUDA_LINK} )
-set (HIP_LD ${ROCM_PREFIX}/hip/lib) 
-set (HIP_LINK "-L${HIP_LD}") 
-message("PARALiA-Framework - HIP_LINK: " ${HIP_LINK} )
-set (HIPRAND_LINK  "-L${ROCM_PREFIX}/lib -lhiprand" )
-message("PARALiA-Framework - HIPRAND_LINK: " ${HIPRAND_LINK} )
-set (HIP_INTERNAL_LINK_LIB "${HIP_LINK}")
-message("PARALiA-Framework - HIP_INTERNAL_LINK_LIB: " ${HIP_INTERNAL_LINK_LIB})
+
+if(${BACKEND} STREQUAL "HIP")
+  set (HIP_LD ${ROCM_PREFIX}/hip/lib) 
+  set (HIP_LINK "-L${HIP_LD}") 
+  message("PARALiA-Framework - HIP_LINK: " ${HIP_LINK} )
+  set (HIPRAND_LINK  "-L${ROCM_PREFIX}/lib -lhiprand" )
+  message("PARALiA-Framework - HIPRAND_LINK: " ${HIPRAND_LINK} )
+  set (HIP_INTERNAL_LINK_LIB "${HIP_LINK}")
+  message("PARALiA-Framework - HIP_INTERNAL_LINK_LIB: " ${HIP_INTERNAL_LINK_LIB})
+elseif(${BACKEND} STREQUAL "Pthreads")
+  set (PTHREADS_INTERNAL_LINK_LIB "-lpthread")
+  message("PARALiA-Framework - PTHREADS_INTERNAL_LINK_LIB: " ${PTHREADS_INTERNAL_LINK_LIB})
+else()
+endif()
 
 set (INTERNAL_LINK_LIB "${CUDA_LINK} -lrt -ldl")
 
 if(${BACKEND} STREQUAL "HIP")
   set (INTERNAL_LINK_LIB "${INTERNAL_LINK_LIB} ${HIP_INTERNAL_LINK_LIB}")
+elseif(${BACKEND} STREQUAL "Pthreads")
+  set (INTERNAL_LINK_LIB "${INTERNAL_LINK_LIB} ${PTHREADS_INTERNAL_LINK_LIB}")
 else()
 endif()
 

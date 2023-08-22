@@ -63,7 +63,7 @@ set (CMAKE_HIP_FLAGS "${CMAKE_HIP_FLAGS} -w -O3")
 message("Universal Helpers - CMAKE_HIP_FLAGS: " ${CMAKE_HIP_FLAGS})
 
 # 	c) Includes
-if (${BACKEND} STREQUAL "CuCuBLAS")
+if (${BACKEND} STREQUAL "CuCuBLAS" OR ${BACKEND} STREQUAL "Pthreads")
 	set (CUDA_INCLUDE_DIRS ${CUDA_PREFIX}/include ${CUDA_PREFIX}/samples/common/inc)
 	include_directories(${CUDA_INCLUDE_DIRS})
 	message("Universal Helpers - CUDA_INCLUDE_DIRS: " ${CUDA_INCLUDE_DIRS})
@@ -101,6 +101,8 @@ set (CUDA_LINK "-L${CUDA_LD} -lcudart -lcublas -lcurand -lcuda") # silver1
 message("Universal Helpers - CUDA_LINK: " ${CUDA_LINK} )
 set (CUDA_INTERNAL_LINK_LIB "${CUDA_LINK} -lrt -ldl")
 message("Universal Helpers - CUDA_INTERNAL_LINK_LIB: " ${CUDA_INTERNAL_LINK_LIB})
+set (PTHREADS_INTERNAL_LINK_LIB "-lpthread")
+message("Universal Helpers - PTHREADS_INTERNAL_LINK_LIB: " ${PTHREADS_INTERNAL_LINK_LIB})
 set (OPENBLAS_LD ${OPENBLAS_PREFIX}/lib)
 set (OPENBLAS_LINK  "-L${OPENBLAS_LD} -lopenblas" )
 message("Universal Helpers - OPENBLAS_LINK: " ${OPENBLAS_LINK} )
@@ -198,6 +200,31 @@ if (${BACKEND} STREQUAL "CuCuBLAS")
 	endif()
 
 	target_link_libraries(unihelpers ${CUDA_INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
+elseif(${BACKEND} STREQUAL "Pthreads")
+	if(${BUILD_BLAS_WRAPPERS_FLAG} EQUAL 1)
+		add_definitions(-DBUILD_BLAS_WRAPPERS_FLAG)
+
+		add_library(unihelpers SHARED
+		${UNIHELP_DIR_SRC}/general_utils.cpp
+		${UNIHELP_DIR_SRC}/data_management.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/queues_per_device.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cu
+		)
+	else()
+		add_library(unihelpers SHARED
+		${UNIHELP_DIR_SRC}/general_utils.cpp
+		${UNIHELP_DIR_SRC}/data_management.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/queues_per_device.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cu
+		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
+		)
+	endif()
+	target_link_libraries(unihelpers ${PTHREADS_INTERNAL_LINK_LIB} ${CUDA_INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
 
 elseif(${BACKEND} STREQUAL "HIP")
 	if(${BUILD_BLAS_WRAPPERS_FLAG} EQUAL 1)
@@ -242,6 +269,8 @@ message( "----------------------------------------------------------------------
 enable_testing()
 if (${BACKEND} STREQUAL "CuCuBLAS" OR ${BACKEND} STREQUAL "HIP")
 	add_subdirectory(testing)
+elseif(${BACKEND} STREQUAL "Pthreads")
+	add_subdirectory(testing_pthreads)
 else()
 endif()
 
