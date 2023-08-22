@@ -17,7 +17,8 @@ set(NVEMAPI_PREFIX "${DEPLOYMENT_DIR}/nvidia-energy-measure")
 set (NVEMAPI_INCLUDE_DIRS ${NVEMAPI_PREFIX}/include) # -L${CUDA_LD}
 include_directories(${NVEMAPI_INCLUDE_DIRS} )
 message( "Database Builder - NVEMAPI_INCLUDE_DIRS: " ${NVEMAPI_INCLUDE_DIRS} )
-ADD_SUBDIRECTORY (CuCuBLAS/nvidia-energy-measure)
+ADD_SUBDIRECTORY (${BACKEND}/nvidia-energy-measure)
+
 
 ## TODO: Choose between ->
 ## i) Automatic micro-benchmarking (Population checked within 95% CI) using boost (recommended if boost available).
@@ -51,12 +52,23 @@ message( "Database Builder - Database DIR: " ${DEPLOYMENT_DIR_DB} )
 
 add_definitions(-DDEPLOYDB="${DEPLOYMENT_DIR_DB}")
 
-add_executable (RunCuCuBlasDdotBench ${DEPLOYMENT_DIR_SRC}/ddot_microbench.cu )
-add_executable (RunCuCuBlasDaxpyBench ${DEPLOYMENT_DIR_SRC}/daxpy_microbench.cu )
-add_executable (RunCuCuBlasDgemvBench ${DEPLOYMENT_DIR_SRC}/dgemv_microbench.cu )
-add_executable (RunCuCuBlasDgemmBench ${DEPLOYMENT_DIR_SRC}/dgemm_microbench.cu )
-add_executable (RunCuCuBlasSgemmBench ${DEPLOYMENT_DIR_SRC}/sgemm_microbench.cu )
-add_executable (RunCuCuBlasLinkBench ${DEPLOYMENT_DIR_SRC}/transfer_link_microbench.cu )
+if (${BACKEND} STREQUAL "CuCuBLAS" OR ${BACKEND} STREQUAL "Pthreads")
+    add_executable (RunCuCuBlasDdotBench ${DEPLOYMENT_DIR_SRC}/ddot_microbench.cu )
+    add_executable (RunCuCuBlasDaxpyBench ${DEPLOYMENT_DIR_SRC}/daxpy_microbench.cu )
+    add_executable (RunCuCuBlasDgemvBench ${DEPLOYMENT_DIR_SRC}/dgemv_microbench.cu )
+    add_executable (RunCuCuBlasDgemmBench ${DEPLOYMENT_DIR_SRC}/dgemm_microbench.cu )
+    add_executable (RunCuCuBlasSgemmBench ${DEPLOYMENT_DIR_SRC}/sgemm_microbench.cu )
+    add_executable (RunCuCuBlasLinkBench ${DEPLOYMENT_DIR_SRC}/transfer_link_microbench.cu )
+
+elseif(${BACKEND} STREQUAL "HIP")
+    add_executable (RunCuCuBlasDdotBench ${DEPLOYMENT_DIR_SRC}/ddot_microbench.cpp )
+    add_executable (RunCuCuBlasDaxpyBench ${DEPLOYMENT_DIR_SRC}/daxpy_microbench.cpp )
+    add_executable (RunCuCuBlasDgemvBench ${DEPLOYMENT_DIR_SRC}/dgemv_microbench.cpp )
+    add_executable (RunCuCuBlasDgemmBench ${DEPLOYMENT_DIR_SRC}/dgemm_microbench.cpp )
+    add_executable (RunCuCuBlasSgemmBench ${DEPLOYMENT_DIR_SRC}/sgemm_microbench.cpp )
+    add_executable (RunCuCuBlasLinkBench ${DEPLOYMENT_DIR_SRC}/transfer_link_microbench.cpp )
+else()
+endif()
 
 target_link_libraries(RunCuCuBlasDdotBench ${INTERNAL_LINK_LIB} unihelpers nvidia_powa)
 target_link_libraries(RunCuCuBlasDaxpyBench ${INTERNAL_LINK_LIB} unihelpers nvidia_powa)

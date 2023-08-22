@@ -648,6 +648,7 @@ ATC_p PARALiADgemm(char TransA,  char TransB, long int M, long int N, long int K
     A_asset->resetProperties();
     B_asset->resetProperties();
     C_asset->resetProperties();
+
 	delete A_asset;
 	delete B_asset;
 	delete C_asset;

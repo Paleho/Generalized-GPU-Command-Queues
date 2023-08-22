@@ -7,7 +7,6 @@
 #include <cstdio>
 #include <typeinfo>
 #include <float.h>
-#include <curand.h>
 
 #include "unihelpers.hpp"
 #include "backend_wrappers.hpp"

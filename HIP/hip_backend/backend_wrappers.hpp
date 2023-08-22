@@ -1,14 +1,16 @@
 ///
-/// \author Anastasiadis Petros (panastas@cslab.ece.ntua.gr)
+/// \author Poutas Sokratis (sokratispoutas@gmail.com)
 ///
 /// \brief The headers for functions for general use throught CoCoPeLia
+///			  (HIPified version of original CUDA code)
 ///
 
 #ifndef UNIHELPERS_BACK_H
 #define UNIHELPERS_BACK_H
 
-#include <cuda.h>
-#include "cublas_v2.h"
+#include <hip/hip_runtime.h>
+#include <hipblas/hipblas.h>
+#include <math.h>
 
 #include <unihelpers.hpp>
 
@@ -79,13 +81,13 @@ void CoCoAdd2Dc(VALUETYPE* dest, long int ldest, VALUETYPE* src, long int lsrc,
 #ifdef BUILD_BLAS_WRAPPERS_FLAG
 #include <cblas.h>
 
-void TransposeTranslate(char TransChar, CBLAS_TRANSPOSE* cblasFlag, cublasOperation_t* cuBLASFlag, long int* ldim, long int dim1, long int dim2);
+void TransposeTranslate(char TransChar, CBLAS_TRANSPOSE* cblasFlag, hipblasOperation_t* cuBLASFlag, long int* ldim, long int dim1, long int dim2);
 
-cublasOperation_t OpCblasToCublas(CBLAS_TRANSPOSE src);
-CBLAS_TRANSPOSE OpCublasToCblas(cublasOperation_t src);
-cublasOperation_t OpCharToCublas(char src);
+hipblasOperation_t OpCblasToCublas(CBLAS_TRANSPOSE src);
+CBLAS_TRANSPOSE OpCublasToCblas(hipblasOperation_t src);
+hipblasOperation_t OpCharToCublas(char src);
 CBLAS_TRANSPOSE OpCharToCblas(char src);
-char PrintCublasOp(cublasOperation_t src);
+char PrintCublasOp(hipblasOperation_t src);
 
 #endif
 

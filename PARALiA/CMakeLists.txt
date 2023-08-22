@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.10)
 
 ## Define a name for the backend library wrappers/implementations used in this build, Currently implemented only with CuCuBLAS(==CUDA+CUBLAS)
-set(BACKEND "Pthreads")
+set(BACKEND "HIP")
 message("PARALiA-Framework - BACKEND: " ${BACKEND})
 add_definitions(-DBACKEND="${BACKEND}")
 ## Define the project version (used in logfiles for result testing)
@@ -30,7 +30,7 @@ add_definitions(-DUNIHELPER_LOCKFREE_ENABLE)
 ## Enable Running multiple backend operations in parallel for each queue
 add_definitions(-DENABLE_PARALLEL_BACKEND)
 ## The maximum allowed parallel backend operations per queue
-add_definitions(-DMAX_BACKEND_L=2)
+add_definitions(-DMAX_BACKEND_L=1)
 
 ## Enable overlapping Send & recv Communication
 add_definitions(-DENABLE_SEND_RECV_OVERLAP)

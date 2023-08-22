@@ -615,6 +615,7 @@ void BufferBlock::remove_reader(bool lockfree){
 	}
 	// update_state(true);
 	// if(State == SHARABLE || State == EXCLUSIVE || State == NATIVE){
+
 #ifdef DEBUG
   lprintf(lvl-1, "BufferBlock(%p)::remove_reader PendingReaders = %d\n", this, PendingReaders.load());
 #endif
@@ -791,9 +792,11 @@ void BufferBlock::reset(bool lockfree, bool forceReset){
 			lock();
 		}
 		PendingReaders = 0;
+
 #ifdef DEBUG
   lprintf(lvl-1, "BufferBlock(%p)::reset PendingReaders = %d (State = %s, forceReset = %d\n", this, PendingReaders.load(), print_state(State), forceReset);
 #endif
+
 		PendingWriters = 0;
 		free(WritebackData_p);
 		WritebackData_p = NULL;

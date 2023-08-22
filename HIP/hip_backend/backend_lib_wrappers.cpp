@@ -1,11 +1,11 @@
 ///
-/// \author Anastasiadis Petros (panastas@cslab.ece.ntua.gr)
+/// \author Poutas Sokratis (sokratispoutas@gmail.com)
 ///
-/// \brief Backend library wrappers for various cuda/cublas calls
+/// \brief Backend library wrappers for various hip/hipblas calls
+///			  (HIPified version of original CUDA code)
 ///
 
-#include <cublas_v2.h>
-#include <cuda_runtime.h>
+#include <hipblas.h>
 #include <pthread.h>
 #include <cblas.h>
 
@@ -27,7 +27,7 @@ int reduce_block_lock[128*MAX_BUFFERING_L] = {0};
 
 void backend_init(short dev_id, CQueue_p h2d_q, CQueue_p d2h_q, CQueue_p exec_q){
   int dev_idc = -1;
-  cudaError_t err = cudaGetDevice(&dev_idc);
+  hipError_t err = hipGetDevice(&dev_idc);
   if(dev_idc != dev_id && dev_id != -1)
     warning("backend_init: called on different device - actual(%d) vs called(%d)\n", dev_idc, dev_id);
   return;
@@ -35,8 +35,8 @@ void backend_init(short dev_id, CQueue_p h2d_q, CQueue_p d2h_q, CQueue_p exec_q)
 
 void backend_free(short dev_id){
   if (dev_id != -1){
-    cudaSetDevice(dev_id);
-    cudaDeviceSynchronize();
+    hipSetDevice(dev_id);
+    hipDeviceSynchronize();
   }
   return;
 }
@@ -90,38 +90,38 @@ void backend_run_operation(void* backend_data, const char* opname, CQueue_p run_
   else error("backend_run_operation: unkown/not implemented opname=%s\n", opname);
 }
 
-void TransposeTranslate(char TransChar, CBLAS_TRANSPOSE* cblasFlag, cublasOperation_t* cuBLASFlag, long int* ldim, long int dim1, long int dim2){
+void TransposeTranslate(char TransChar, CBLAS_TRANSPOSE* cblasFlag, hipblasOperation_t* cuBLASFlag, long int* ldim, long int dim1, long int dim2){
 	if (TransChar == 'N'){
  		*cblasFlag = CblasNoTrans;
- 		*cuBLASFlag = CUBLAS_OP_N;
+ 		*cuBLASFlag = HIPBLAS_OP_N;
 		*ldim = dim1;
 	}
 	else if (TransChar == 'T'){
  		*cblasFlag = CblasTrans;
- 		*cuBLASFlag = CUBLAS_OP_T;
+ 		*cuBLASFlag = HIPBLAS_OP_T;
 		*ldim = dim2;
 	}
 	else if (TransChar == 'C'){
  		*cblasFlag = CblasConjTrans;
- 		*cuBLASFlag = CUBLAS_OP_C;
+ 		*cuBLASFlag = HIPBLAS_OP_C;
 		*ldim = dim2;
 	}
 	else error("TransposeTranslate: %c is an invalid Trans flag", TransChar);
 }
 
-cublasOperation_t OpCblasToCublas(CBLAS_TRANSPOSE src)
+hipblasOperation_t OpCblasToCublas(CBLAS_TRANSPOSE src)
 {
-	if(src == CblasNoTrans) return CUBLAS_OP_N;
-	else if(src == CblasTrans) return CUBLAS_OP_T;
-	else if(src == CblasConjTrans) return CUBLAS_OP_C;
+	if(src == CblasNoTrans) return HIPBLAS_OP_N;
+	else if(src == CblasTrans) return HIPBLAS_OP_T;
+	else if(src == CblasConjTrans) return HIPBLAS_OP_C;
 	else error("OpCblasToCublas: Invalid Op\n");
 }
 
-cublasOperation_t OpCharToCublas(char src)
+hipblasOperation_t OpCharToCublas(char src)
 {
-	if(src == 'N') return CUBLAS_OP_N;
-	else if(src == 'T') return CUBLAS_OP_T;
-	else if(src == 'C') return CUBLAS_OP_C;
+	if(src == 'N') return HIPBLAS_OP_N;
+	else if(src == 'T') return HIPBLAS_OP_T;
+	else if(src == 'C') return HIPBLAS_OP_C;
 	else error("OpCharToCublas: Invalid Op: %c\n", src);
 }
 
@@ -133,20 +133,20 @@ CBLAS_TRANSPOSE OpCharToCblas(char src)
 	else error("OpCharToCblas: Invalid Op: %c\n", src);
 }
 
-CBLAS_TRANSPOSE OpCublasToCblas(cublasOperation_t src)
+CBLAS_TRANSPOSE OpCublasToCblas(hipblasOperation_t src)
 {
-	if(src == CUBLAS_OP_N) return CblasNoTrans;
-	else if(src == CUBLAS_OP_T) return CblasTrans;
-	else if(src == CUBLAS_OP_C) return CblasConjTrans;
+	if(src == HIPBLAS_OP_N) return CblasNoTrans;
+	else if(src == HIPBLAS_OP_T) return CblasTrans;
+	else if(src == HIPBLAS_OP_C) return CblasConjTrans;
 	else error("OpCublasToCblas: Invalid Op\n");
 }
 
-char PrintCublasOp(cublasOperation_t src)
+char PrintCublasOp(hipblasOperation_t src)
 {
 
-	if(src == CUBLAS_OP_N) return 'N';
-	else if(src == CUBLAS_OP_T) return 'T';
-	else if(src == CUBLAS_OP_C) return 'C';
+	if(src == HIPBLAS_OP_N) return 'N';
+	else if(src == HIPBLAS_OP_T) return 'T';
+	else if(src == HIPBLAS_OP_C) return 'C';
 	else error("PrintCublasOp: Invalid Op\n");
 }
 

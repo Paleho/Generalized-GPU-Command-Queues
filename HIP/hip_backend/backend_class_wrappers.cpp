@@ -1,15 +1,19 @@
 ///
-/// \author Anastasiadis Petros (panastas@cslab.ece.ntua.gr)
+/// \author Poutas Sokratis (sokratispoutas@gmail.com)
 ///
-/// \brief Some CUDA function calls with added error-checking
+/// \brief Some HIP function calls with added error-checking
+///			(HIPified version of original CUDA code)
 ///
 
 #include <cstdio>
 #include <typeinfo>
 #include <float.h>
-#include <curand.h>
 
 #include "backend_wrappers.hpp"
+
+inline static hipError_t hipLaunchHostFunc(hipStream_t stream, hipHostFn_t fn, void* userData) {
+    return hipCUDAErrorTohipError(cudaLaunchHostFunc(stream, fn, userData));
+}
 
 int lvl = 1;
 
@@ -74,34 +78,34 @@ CommandQueue::CommandQueue(int dev_id_in)
 #endif
 	backend_ctr = 0;
 	for (int par_idx = 0; par_idx < MAX_BACKEND_L; par_idx++ ){
-		cqueue_backend_ptr[par_idx] = malloc(sizeof(cudaStream_t));
-		cudaError_t err = cudaStreamCreate((cudaStream_t*) cqueue_backend_ptr[par_idx]);
-		massert(cudaSuccess == err, "CommandQueue::CommandQueue(%d) - %s\n", dev_id, cudaGetErrorString(err));
-		cudaStream_t stream = *((cudaStream_t*) cqueue_backend_ptr[par_idx]);
+		cqueue_backend_ptr[par_idx] = malloc(sizeof(hipStream_t));
+		hipError_t err = hipStreamCreate((hipStream_t*) cqueue_backend_ptr[par_idx]);
+		massert(hipSuccess == err, "CommandQueue::CommandQueue(%d) - %s\n", dev_id, hipGetErrorString(err));
+		hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr[par_idx]);
 
-		cqueue_backend_data[par_idx] = malloc(sizeof(cublasHandle_t));
-		massert(CUBLAS_STATUS_SUCCESS == cublasCreate((cublasHandle_t*) cqueue_backend_data[par_idx]),
-			"CommandQueue::CommandQueue(%d): cublasCreate failed\n", dev_id);
-		massert(CUBLAS_STATUS_SUCCESS == cublasSetStream(*((cublasHandle_t*) cqueue_backend_data[par_idx]), stream),
-			"CommandQueue::CommandQueue(%d): cublasSetStream failed\n", dev_id);
+		cqueue_backend_data[par_idx] = malloc(sizeof(hipblasHandle_t));
+		massert(HIPBLAS_STATUS_SUCCESS == hipblasCreate((hipblasHandle_t*) cqueue_backend_data[par_idx]),
+			"CommandQueue::CommandQueue(%d): hipblasCreate failed\n", dev_id);
+		massert(HIPBLAS_STATUS_SUCCESS == hipblasSetStream(*((hipblasHandle_t*) cqueue_backend_data[par_idx]), stream),
+			"CommandQueue::CommandQueue(%d): hipblasSetStream failed\n", dev_id);
 		//warning("FIXME: Running on limited SMs, custom stuff, beware this in not a drill\n");
-		//massert(CUBLAS_STATUS_SUCCESS == cublasSetSmCountTarget(*((cublasHandle_t*) cqueue_backend_data[par_idx]), 1),
+		//massert(HIPBLAS_STATUS_SUCCESS == cublasSetSmCountTarget(*((hipblasHandle_t*) cqueue_backend_data[par_idx]), 1),
 		//	"CommandQueue::CommandQueue(%d): cublasSetSmCountTarget failed\n", dev_id);
 	}
 #else
 #ifdef UDEBUG
 		lprintf(lvl, "[dev_id=%3d] ------- CommandQueue::CommandQueue(%d): Initializing simple queue\n", dev_id);
 #endif
-	cqueue_backend_ptr = malloc(sizeof(cudaStream_t));
-	cudaError_t err = cudaStreamCreate((cudaStream_t*) cqueue_backend_ptr);
-	massert(cudaSuccess == err, "CommandQueue::CommandQueue(%d) - %s\n", dev_id, cudaGetErrorString(err));
-	cudaStream_t stream = *((cudaStream_t*) cqueue_backend_ptr);
+	cqueue_backend_ptr = malloc(sizeof(hipStream_t));
+	hipError_t err = hipStreamCreate((hipStream_t*) cqueue_backend_ptr);
+	massert(hipSuccess == err, "CommandQueue::CommandQueue(%d) - %s\n", dev_id, hipGetErrorString(err));
+	hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr);
 
-	cqueue_backend_data = malloc(sizeof(cublasHandle_t));
-	massert(CUBLAS_STATUS_SUCCESS == cublasCreate((cublasHandle_t*) cqueue_backend_data),
-		"CommandQueue::CommandQueue(%d): cublasCreate failed\n", dev_id);
-	massert(CUBLAS_STATUS_SUCCESS == cublasSetStream(*((cublasHandle_t*) cqueue_backend_data), stream),
-		"CommandQueue::CommandQueue(%d): cublasSetStream failed\n", dev_id);
+	cqueue_backend_data = malloc(sizeof(hipblasHandle_t));
+	massert(HIPBLAS_STATUS_SUCCESS == hipblasCreate((hipblasHandle_t*) cqueue_backend_data),
+		"CommandQueue::CommandQueue(%d): hipblasCreate failed\n", dev_id);
+	massert(HIPBLAS_STATUS_SUCCESS == hipblasSetStream(*((hipblasHandle_t*) cqueue_backend_data), stream),
+		"CommandQueue::CommandQueue(%d): hipblasSetStream failed\n", dev_id);
 #endif
 	CoCoPeLiaSelectDevice(prev_dev_id);
 #ifdef UDDEBUG
@@ -118,26 +122,26 @@ CommandQueue::~CommandQueue()
 		CoCoPeLiaSelectDevice(dev_id);
 #ifdef ENABLE_PARALLEL_BACKEND
 	for (int par_idx = 0; par_idx < MAX_BACKEND_L; par_idx++ ){
-		cudaStream_t stream = *((cudaStream_t*) cqueue_backend_ptr[par_idx]);
-		cudaError_t err = cudaStreamSynchronize(stream);
-		massert(cudaSuccess == err, "CommandQueue::CommandQueue - cudaStreamSynchronize: %s\n", cudaGetErrorString(err));
-		err = cudaStreamDestroy(stream);
-		massert(cudaSuccess == err, "CommandQueue::CommandQueue - cudaStreamDestroy: %s\n", cudaGetErrorString(err));
+		hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr[par_idx]);
+		hipError_t err = hipStreamSynchronize(stream);
+		massert(hipSuccess == err, "CommandQueue::CommandQueue - hipStreamSynchronize: %s\n", hipGetErrorString(err));
+		err = hipStreamDestroy(stream);
+		massert(hipSuccess == err, "CommandQueue::CommandQueue - hipStreamDestroy: %s\n", hipGetErrorString(err));
 		free(cqueue_backend_ptr[par_idx]);
-		cublasHandle_t handle = *((cublasHandle_t*) cqueue_backend_data[par_idx]);
-		massert(CUBLAS_STATUS_SUCCESS == cublasDestroy(handle),
-			"CommandQueue::CommandQueue - cublasDestroy(handle) failed\n");
+		hipblasHandle_t handle = *((hipblasHandle_t*) cqueue_backend_data[par_idx]);
+		massert(HIPBLAS_STATUS_SUCCESS == hipblasDestroy(handle),
+			"CommandQueue::CommandQueue - hipblasDestroy(handle) failed\n");
 	}
 #else
-	cudaStream_t stream = *((cudaStream_t*) cqueue_backend_ptr);
-	cudaError_t err = cudaStreamSynchronize(stream);
-	massert(cudaSuccess == err, "CommandQueue::CommandQueue - cudaStreamSynchronize: %s\n", cudaGetErrorString(err));
-	err = cudaStreamDestroy(stream);
-	massert(cudaSuccess == err, "CommandQueue::CommandQueue - cudaStreamDestroy: %s\n", cudaGetErrorString(err));
+	hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr);
+	hipError_t err = hipStreamSynchronize(stream);
+	massert(hipSuccess == err, "CommandQueue::CommandQueue - hipStreamSynchronize: %s\n", hipGetErrorString(err));
+	err = hipStreamDestroy(stream);
+	massert(hipSuccess == err, "CommandQueue::CommandQueue - hipStreamDestroy: %s\n", hipGetErrorString(err));
 	free(cqueue_backend_ptr);
-	cublasHandle_t handle = *((cublasHandle_t*) cqueue_backend_data);
-	massert(CUBLAS_STATUS_SUCCESS == cublasDestroy(handle),
-		"CommandQueue::CommandQueue - cublasDestroy(handle) failed\n");
+	hipblasHandle_t handle = *((hipblasHandle_t*) cqueue_backend_data);
+	massert(HIPBLAS_STATUS_SUCCESS == hipblasDestroy(handle),
+		"CommandQueue::CommandQueue - hipblasDestroy(handle) failed\n");
 #endif
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::~CommandQueue()\n", dev_id);
@@ -152,14 +156,14 @@ void CommandQueue::sync_barrier()
 #endif
 #ifdef ENABLE_PARALLEL_BACKEND
 	for (int par_idx = 0; par_idx < MAX_BACKEND_L; par_idx++ ){
-		cudaStream_t stream = *((cudaStream_t*) cqueue_backend_ptr[par_idx]);
-		cudaError_t err = cudaStreamSynchronize(stream);
-		massert(cudaSuccess == err, "CommandQueue::sync_barrier - %s\n", cudaGetErrorString(err));
+		hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr[par_idx]);
+		hipError_t err = hipStreamSynchronize(stream);
+		massert(hipSuccess == err, "CommandQueue::sync_barrier - %s\n", hipGetErrorString(err));
 	}
 #else
-	cudaStream_t stream = *((cudaStream_t*) cqueue_backend_ptr);
-	cudaError_t err = cudaStreamSynchronize(stream);
-	massert(cudaSuccess == err, "CommandQueue::sync_barrier - %s\n", cudaGetErrorString(err));
+	hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr);
+	hipError_t err = hipStreamSynchronize(stream);
+	massert(hipSuccess == err, "CommandQueue::sync_barrier - %s\n", hipGetErrorString(err));
 #endif
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::sync_barrier()\n", dev_id);
@@ -172,13 +176,13 @@ void CommandQueue::add_host_func(void* func, void* data){
 	lprintf(lvl, "[dev_id=%3d] |-----> CommandQueue::add_host_func()\n", dev_id);
 #endif
 #ifdef ENABLE_PARALLEL_BACKEND
-	cudaStream_t stream = *((cudaStream_t*) cqueue_backend_ptr[backend_ctr]);
-	cudaError_t err = cudaLaunchHostFunc(stream, (cudaHostFn_t) func, data);
-	massert(cudaSuccess == err, "CommandQueue::add_host_func - %s\n", cudaGetErrorString(err));
+	hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr[backend_ctr]);
+	hipError_t err = hipLaunchHostFunc(stream, (hipHostFn_t) func, data);
+	massert(hipSuccess == err, "CommandQueue::add_host_func - %s\n", hipGetErrorString(err));
 #else
-	cudaStream_t stream = *((cudaStream_t*) cqueue_backend_ptr);
-	cudaError_t err = cudaLaunchHostFunc(stream, (cudaHostFn_t) func, data);
-	massert(cudaSuccess == err, "CommandQueue::add_host_func - %s\n", cudaGetErrorString(err));
+	hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr);
+	hipError_t err = hipLaunchHostFunc(stream, (hipHostFn_t) func, data);
+	massert(hipSuccess == err, "CommandQueue::add_host_func - %s\n", hipGetErrorString(err));
 #endif
 	release_lock();
 #ifdef UDDEBUG
@@ -200,18 +204,14 @@ void CommandQueue::wait_for_event(Event_p Wevent)
 		}
 		get_lock();
 #ifdef ENABLE_PARALLEL_BACKEND
-		cudaStream_t stream = *((cudaStream_t*) cqueue_backend_ptr[backend_ctr]);
+		hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr[backend_ctr]);
 #else
-		cudaStream_t stream = *((cudaStream_t*) cqueue_backend_ptr);
+		hipStream_t stream = *((hipStream_t*) cqueue_backend_ptr);
 #endif
-		cudaEvent_t cuda_event= *(cudaEvent_t*) Wevent->event_backend_ptr;
+		hipEvent_t cuda_event= *(hipEvent_t*) Wevent->event_backend_ptr;
 		release_lock();
-
-#ifdef DDEBUG
-	lprintf(lvl, "CommandQueue::wait_for_event event = %p (status = %s) : queue = %p\n", Wevent, print_event_status(Wevent->query_status()), this);
-#endif
-		cudaError_t err = cudaStreamWaitEvent(stream, cuda_event, 0); // 0-only parameter = future NVIDIA masterplan?
-		massert(cudaSuccess == err, "CommandQueue::wait_for_event - %s\n", cudaGetErrorString(err));
+		hipError_t err = hipStreamWaitEvent(stream, cuda_event, 0); // 0-only parameter = future NVIDIA masterplan?
+		massert(hipSuccess == err, "CommandQueue::wait_for_event - %s\n", hipGetErrorString(err));
 	}
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| CommandQueue::wait_for_event(Event(%d))\n", dev_id, Wevent->id);
@@ -260,13 +260,13 @@ Event::Event(int dev_id_in)
 	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::Event()\n", dev_id_in, Event_num_device[idxize(dev_id_in)]);
 #endif
 	get_lock();
-	event_backend_ptr = malloc(sizeof(cudaEvent_t));
+	event_backend_ptr = malloc(sizeof(hipEvent_t));
 	id = Event_num_device[idxize(dev_id_in)];
 	Event_num_device[idxize(dev_id_in)]++;
 #ifndef ENABLE_LAZY_EVENTS
 	dev_id = dev_id_in;
-	cudaError_t err = cudaEventCreate(( cudaEvent_t*) event_backend_ptr);
-	massert(cudaSuccess == err, "Event::Event() - %s\n", cudaGetErrorString(err));
+	hipError_t err = hipEventCreate(( hipEvent_t*) event_backend_ptr);
+	massert(hipSuccess == err, "Event::Event() - %s\n", hipGetErrorString(err));
 #else
 	dev_id = dev_id_in - 42;
 #endif
@@ -286,14 +286,14 @@ Event::~Event()
 	get_lock();
 #ifndef ENABLE_LAZY_EVENTS
 	Event_num_device[idxize(dev_id)]--;
-	cudaError_t err = cudaEventDestroy(*(( cudaEvent_t*) event_backend_ptr));
-	massert(cudaSuccess == err, "Event(%d)::~Event() - %s\n", id, cudaGetErrorString(err));
+	hipError_t err = hipEventDestroy(*(( hipEvent_t*) event_backend_ptr));
+	massert(hipSuccess == err, "Event(%d)::~Event() - %s\n", id, hipGetErrorString(err));
 #else
 	if (dev_id < -1) 	Event_num_device[idxize(dev_id+42)]--;
 	else{
 			Event_num_device[idxize(dev_id)]--;
-			cudaError_t err = cudaEventDestroy(*(( cudaEvent_t*) event_backend_ptr));
-			massert(cudaSuccess == err, "Event(%d)::~Event() - %s\n", id, cudaGetErrorString(err));
+			hipError_t err = hipEventDestroy(*(( hipEvent_t*) event_backend_ptr));
+			massert(hipSuccess == err, "Event(%d)::~Event() - %s\n", id, hipGetErrorString(err));
 	}
 #endif
 	free(event_backend_ptr);
@@ -316,10 +316,10 @@ void Event::sync_barrier()
 #endif
 		}
 		else{
-			cudaEvent_t cuda_event= *(cudaEvent_t*) event_backend_ptr;
-			cudaError_t err = cudaEventSynchronize(cuda_event);
+			hipEvent_t cuda_event= *(hipEvent_t*) event_backend_ptr;
+			hipError_t err = hipEventSynchronize(cuda_event);
 			if (status == RECORDED) status = CHECKED;
-			massert(cudaSuccess == err, "Event::sync_barrier() - %s\n", cudaGetErrorString(err));
+			massert(hipSuccess == err, "Event::sync_barrier() - %s\n", hipGetErrorString(err));
 		}
 	}
 	//release_lock();
@@ -343,7 +343,7 @@ void Event::record_to_queue(CQueue_p Rr){
 	lprintf(lvl, "[dev_id=%3d] |-----> Event(%d)::record_to_queue(Queue(dev_id=%d))\n", dev_id, id, Rr->dev_id);
 #endif
 	int prev_dev_id;
-	cudaGetDevice(&prev_dev_id);
+	hipGetDevice(&prev_dev_id);
 	if (Rr->dev_id != prev_dev_id){
 		CoCoPeLiaSelectDevice(Rr->dev_id);
 #ifdef UDEBUG
@@ -369,28 +369,24 @@ void Event::record_to_queue(CQueue_p Rr){
 			;//warning("(Lazy)Event(%d,dev_id = %d)::record_to_queue(%d) - UNRECORDED event suspicious dev_id\n",
 			//	id, dev_id, Rr->dev_id);
 		dev_id = Rr->dev_id;
-		cudaError_t err = cudaEventCreate(( cudaEvent_t*) event_backend_ptr);
-		massert(cudaSuccess == err, "(Lazy)Event(%d,dev_id = %d)::record_to_queue(%d): - %s\n",
-			id, dev_id, Rr->dev_id, cudaGetErrorString(err));
+		hipError_t err = hipEventCreate(( hipEvent_t*) event_backend_ptr);
+		massert(hipSuccess == err, "(Lazy)Event(%d,dev_id = %d)::record_to_queue(%d): - %s\n",
+			id, dev_id, Rr->dev_id, hipGetErrorString(err));
 	}
 #endif
-	cudaEvent_t cuda_event= *(cudaEvent_t*) event_backend_ptr;
+	hipEvent_t cuda_event= *(hipEvent_t*) event_backend_ptr;
 #ifdef ENABLE_PARALLEL_BACKEND
-	cudaStream_t stream = *((cudaStream_t*) Rr->cqueue_backend_ptr[Rr->backend_ctr]);
-	cudaError_t err = cudaEventRecord(cuda_event, stream);
+	hipStream_t stream = *((hipStream_t*) Rr->cqueue_backend_ptr[Rr->backend_ctr]);
+	hipError_t err = hipEventRecord(cuda_event, stream);
 #else
-	cudaStream_t stream = *((cudaStream_t*) Rr->cqueue_backend_ptr);
-	cudaError_t err = cudaEventRecord(cuda_event, stream);
+	hipStream_t stream = *((hipStream_t*) Rr->cqueue_backend_ptr);
+	hipError_t err = hipEventRecord(cuda_event, stream);
 #endif
 	status = RECORDED;
-	massert(cudaSuccess == err, "Event(%d,dev_id = %d)::record_to_queue(%d) - %s\n",  id, dev_id, Rr->dev_id, cudaGetErrorString(err));
+	massert(hipSuccess == err, "Event(%d,dev_id = %d)::record_to_queue(%d) - %s\n",  id, dev_id, Rr->dev_id, hipGetErrorString(err));
 	if (Rr->dev_id != prev_dev_id){
-		cudaSetDevice(prev_dev_id);
+		hipSetDevice(prev_dev_id);
 	}
-	
-#ifdef DDEBUG
-	lprintf(lvl, "Event(%p)::record_to_queue(Queue = %p)\n", this, Rr);
-#endif
 	release_lock();
 #ifdef UDDEBUG
 	lprintf(lvl, "[dev_id=%3d] <-----| Event(%d)::record_to_queue(Queue(dev_id=%d))\n", dev_id, id, Rr->dev_id);
@@ -410,29 +406,29 @@ event_status Event::query_status(){
 			return UNRECORDED;
 		}
 #endif
-		cudaEvent_t cuda_event= *(cudaEvent_t*) event_backend_ptr;
-		cudaError_t err = cudaEventQuery(cuda_event);
+		hipEvent_t cuda_event= *(hipEvent_t*) event_backend_ptr;
+		hipError_t err = hipEventQuery(cuda_event);
 
-		if (err == cudaSuccess && (local_status == UNRECORDED ||  local_status == COMPLETE));
-		else if (err == cudaSuccess && local_status == RECORDED) local_status = status = COMPLETE;
-		else if (err == cudaErrorNotReady && local_status == RECORDED);
-		else if (err == cudaErrorNotReady && local_status == UNRECORDED){
+		if (err == hipSuccess && (local_status == UNRECORDED ||  local_status == COMPLETE));
+		else if (err == hipSuccess && local_status == RECORDED) local_status = status = COMPLETE;
+		else if (err == hipErrorNotReady && local_status == RECORDED);
+		else if (err == hipErrorNotReady && local_status == UNRECORDED){
 #ifdef UDEBUG
 			// this should not happen in a healthy locked update scenario.
-			warning("Event::query_status(): cudaErrorNotReady with status == UNRECORDED should not happen\n");
+			warning("Event::query_status(): hipErrorNotReady with status == UNRECORDED should not happen\n");
 #endif
 			local_status = status = RECORDED;
 		}
-		else if (err == cudaSuccess &&  local_status == CHECKED){
+		else if (err == hipSuccess &&  local_status == CHECKED){
 			;
 			// TODO: This should not happen in a healthy locked update scenario.
 			// But it does since no locking yet. Not sure of its effects.
 #ifdef UDEBUG
-			warning("[dev_id=%3d] |-----> Event(%d)::query_status(): cudaSuccess with local_status == CHECKED should not happen\n", dev_id, id);
+			warning("[dev_id=%3d] |-----> Event(%d)::query_status(): hipSuccess with local_status == CHECKED should not happen\n", dev_id, id);
 #endif
 		}
 		else error("[dev_id=%3d] |-----> Event(%d)::query_status() - %s, local_status=%s, status = %s\n", dev_id, id,
-		cudaGetErrorString(err), print_event_status(local_status), print_event_status(status));
+		hipGetErrorString(err), print_event_status(local_status), print_event_status(status));
 	}
 	release_lock();
 #ifdef UDDEBUG
@@ -465,7 +461,7 @@ void Event::soft_reset(){
 #ifdef ENABLE_LAZY_EVENTS
 	if(dev_id >= -1){
 		dev_id = dev_id - 42;
-		event_backend_ptr = malloc(sizeof(cudaEvent_t));
+		event_backend_ptr = malloc(sizeof(hipEvent_t));
 	}
 #endif
 	release_lock();
@@ -485,8 +481,8 @@ void Event::reset(){
 #ifdef ENABLE_LAZY_EVENTS
 	if(dev_id >= -1){
 		dev_id = dev_id - 42;
-		cudaError_t err = cudaEventDestroy(*(( cudaEvent_t*) event_backend_ptr));
-		massert(cudaSuccess == err, "[dev_id=%3d] (Lazy)Event(%d)::reset - %s\n", dev_id + 42, id, cudaGetErrorString(err));
+		hipError_t err = hipEventDestroy(*(( hipEvent_t*) event_backend_ptr));
+		massert(hipSuccess == err, "[dev_id=%3d] (Lazy)Event(%d)::reset - %s\n", dev_id + 42, id, hipGetErrorString(err));
 	}
 #endif
 	release_lock();
@@ -522,9 +518,9 @@ double Event_timer::sync_get_time()
 		if(Event_stop->query_status() != UNRECORDED) Event_stop->sync_barrier();
 		else error("Event_timer::sync_get_time: Event_start is %s but Event_stop still UNRECORDED\n",
 			print_event_status(Event_start->query_status()));
-		cudaEvent_t cuda_event_start = *(cudaEvent_t*) Event_start->event_backend_ptr;
-		cudaEvent_t cuda_event_stop = *(cudaEvent_t*) Event_stop->event_backend_ptr;
-		cudaEventElapsedTime(&temp_t, cuda_event_start, cuda_event_stop);
+		hipEvent_t cuda_event_start = *(hipEvent_t*) Event_start->event_backend_ptr;
+		hipEvent_t cuda_event_stop = *(hipEvent_t*) Event_stop->event_backend_ptr;
+		hipEventElapsedTime(&temp_t, cuda_event_start, cuda_event_stop);
 	}
 	else temp_t = 0;
 	time_ms = (double) temp_t;

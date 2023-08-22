@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.10)
 
-## Define a name for the backend library wrappers/implementations used in this build, Currently implemented only with CuCuBLAS(==CUDA+CUBLAS)
+## Define a name for the backend library wrappers/implementations used in this build, Currently implemented with CuCuBLAS(==CUDA+CUBLAS), Pthreads and HIP
 # set(BACKEND "CuCuBLAS")
 message("Universal Helpers - BACKEND: " ${BACKEND})
 add_definitions(-DBACKEND="${BACKEND}")
@@ -29,7 +29,8 @@ message("Universal Helpers - CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
 set (CUDA_PREFIX "/usr/local/cuda-11.6") # Silver1
 add_definitions(-DCUDA_VER=1100)
 
-# TODO: CXX_PREFIX for Silver1 ?
+set (ROCM_PREFIX "/opt/rocm-5.4.0") # Silver1
+
 message("Universal Helpers - CXX_PREFIX: " ${CXX_PREFIX})
 
 ## CMAKE_CUDA_ARCHITECTURES
@@ -52,21 +53,47 @@ endif()
 
 # 	a) Compiler
 set (CMAKE_CUDA_COMPILER ${CUDA_PREFIX}/bin/nvcc)
-# TODO: CMAKE_CXX_COMPILER and CMAKE_C_COMPILER ?
+set (CMAKE_HIP_COMPILER ${ROCM_PREFIX}/bin/hipcc)
 
 # 	b) Compile flags
 set (CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -w -O3")
 message("Universal Helpers - CMAKE_CUDA_FLAGS: " ${CMAKE_CUDA_FLAGS})
 
+set (CMAKE_HIP_FLAGS "${CMAKE_HIP_FLAGS} -w -O3")
+message("Universal Helpers - CMAKE_HIP_FLAGS: " ${CMAKE_HIP_FLAGS})
+
 # 	c) Includes
-set (CUDA_INCLUDE_DIRS ${CUDA_PREFIX}/include ${CUDA_PREFIX}/samples/common/inc)
-include_directories(${CUDA_INCLUDE_DIRS})
-message("Universal Helpers - CUDA_INCLUDE_DIRS: " ${CUDA_INCLUDE_DIRS})
+if (${BACKEND} STREQUAL "CuCuBLAS" OR ${BACKEND} STREQUAL "Pthreads")
+	set (CUDA_INCLUDE_DIRS ${CUDA_PREFIX}/include ${CUDA_PREFIX}/samples/common/inc)
+	include_directories(${CUDA_INCLUDE_DIRS})
+	message("Universal Helpers - CUDA_INCLUDE_DIRS: " ${CUDA_INCLUDE_DIRS})
+
+elseif(${BACKEND} STREQUAL "HIP")
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_NVIDIA__ -D__HIP_PLATFORM_NVCC__") # for NVIDIA platform (can be changed to __HIP_PLATFORM_AMD__)
+
+	set (HIP_INCLUDE_DIRS ${ROCM_PREFIX}/include )
+	include_directories(${HIP_INCLUDE_DIRS})
+	set (CUDA_INCLUDE_DIRS ${CUDA_PREFIX}/include ${CUDA_PREFIX}/samples/common/inc)
+	include_directories(${CUDA_INCLUDE_DIRS})
+	message("Universal Helpers - HIP_INCLUDE_DIRS: " ${HIP_INCLUDE_DIRS})
+
+else()
+	message(FATAL_ERROR "Universal Helpers - BACKEND flag error: BACKEND=" ${BACKEND} )
+endif()
 
 set(OPENBLAS_PREFIX "/home/users/spoutas/Libs/OpenBLAS-install") # silver1
 set (OPENBLAS_INCLUDE_DIRS ${OPENBLAS_PREFIX}/include)
 include_directories(${OPENBLAS_INCLUDE_DIRS})
 message("Universal Helpers - OPENBLAS_INCLUDE_DIRS: " ${OPENBLAS_INCLUDE_DIRS})
+
+if(${BACKEND} STREQUAL "HIP")
+	set(HIPBLAS_PREFIX "/opt/rocm-5.4.0/hipblas") # silver1
+	set (HIPBLAS_INCLUDE_DIRS ${HIPBLAS_PREFIX}/include)
+	include_directories(${HIPBLAS_INCLUDE_DIRS})
+	message("Universal Helpers - HIPBLAS_INCLUDE_DIRS: " ${HIPBLAS_INCLUDE_DIRS})
+
+else()
+endif()
 
 # 	d) Link Libraries
 set (CUDA_LD ${CUDA_PREFIX}/lib64) # or /lib depending on system
@@ -79,6 +106,16 @@ message("Universal Helpers - PTHREADS_INTERNAL_LINK_LIB: " ${PTHREADS_INTERNAL_L
 set (OPENBLAS_LD ${OPENBLAS_PREFIX}/lib)
 set (OPENBLAS_LINK  "-L${OPENBLAS_LD} -lopenblas" )
 message("Universal Helpers - OPENBLAS_LINK: " ${OPENBLAS_LINK} )
+set (HIP_LD ${ROCM_PREFIX}/hip/lib) 
+set (HIP_LINK "-L${HIP_LD}") 
+message("Universal Helpers - HIP_LINK: " ${HIP_LINK} )
+set (HIPRAND_LINK  "-L${ROCM_PREFIX}/lib -lhiprand" )
+message("Universal Helpers - HIPRAND_LINK: " ${HIPRAND_LINK} )
+set (HIP_INTERNAL_LINK_LIB "${HIP_LINK}")
+message("Universal Helpers - HIP_INTERNAL_LINK_LIB: " ${HIP_INTERNAL_LINK_LIB})
+set (HIPBLAS_LD ${HIPBLAS_PREFIX}/lib)
+set (HIPBLAS_LINK  "-L${HIPBLAS_LD} -lhipblas" )
+message("Universal Helpers - HIPBLAS_LINK: " ${HIPBLAS_LINK} )
 
 set(PROJECT_VERSION "1.0")
 message("Universal Helpers - PROJECT_VERSION: " ${PROJECT_VERSION})
@@ -97,13 +134,23 @@ set (UNIHELP_DIR_INC ${UNIHELP_DIR}/include)
 message( "Universal Helpers - Included DIR: " ${UNIHELP_DIR_INC} )
 include_directories(${UNIHELP_DIR_INC})
 
-set (UNIHELP_DIR_SRC ${UNIHELP_DIR}/src)
-message( "Universal Helpers - Source DIR: " ${UNIHELP_DIR_SRC} )
+if (${BACKEND} STREQUAL "HIP")
+  set (UNIHELP_DIR_SRC ${UNIHELP_DIR}/HIP/src)
+  message( "Universal Helpers - Source DIR: " ${UNIHELP_DIR_SRC} )
 
-set (BACKEND_UNIHELP_DIR_SRC ${UNIHELP_DIR}/${BACKEND})
-message( "Universal Helpers - BACKEND DIR: " ${BACKEND_UNIHELP_DIR_SRC} )
-message( "Universal Helpers - Included DIR: " ${BACKEND_UNIHELP_DIR_SRC} )
-include_directories(${BACKEND_UNIHELP_DIR_SRC})
+  set (BACKEND_UNIHELP_DIR_SRC ${UNIHELP_DIR}/HIP/hip_backend)
+  message( "Universal Helpers - BACKEND DIR: " ${BACKEND_UNIHELP_DIR_SRC} )
+  include_directories(${BACKEND_UNIHELP_DIR_SRC})
+
+else ()
+  set (UNIHELP_DIR_SRC ${UNIHELP_DIR}/src)
+  message( "Universal Helpers - Source DIR: " ${UNIHELP_DIR_SRC} )
+
+  set (BACKEND_UNIHELP_DIR_SRC ${UNIHELP_DIR}/${BACKEND})
+  message( "Universal Helpers - BACKEND DIR: " ${BACKEND_UNIHELP_DIR_SRC} )
+  include_directories(${BACKEND_UNIHELP_DIR_SRC})
+
+endif()
 
 ### Install Dir
 if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local")
@@ -151,12 +198,8 @@ if (${BACKEND} STREQUAL "CuCuBLAS")
 		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cu
 		)
 	endif()
-	target_link_libraries(unihelpers ${CUDA_INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
-	
-	configure_file(${UNIHELP_DIR_INC}/unihelpers.hpp ${UNIHELP_INSTALL_INC}/unihelpers.hpp COPYONLY)
-	## FIXME: This is a temporary cheat for deployment, must be removed at some point (?). It has to do with TransposeTranslate.
-	configure_file(${BACKEND_UNIHELP_DIR_SRC}/backend_wrappers.hpp ${UNIHELP_INSTALL_INC}/backend_wrappers.hpp COPYONLY)
 
+	target_link_libraries(unihelpers ${CUDA_INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
 elseif(${BACKEND} STREQUAL "Pthreads")
 	if(${BUILD_BLAS_WRAPPERS_FLAG} EQUAL 1)
 		add_definitions(-DBUILD_BLAS_WRAPPERS_FLAG)
@@ -183,13 +226,38 @@ elseif(${BACKEND} STREQUAL "Pthreads")
 	endif()
 	target_link_libraries(unihelpers ${PTHREADS_INTERNAL_LINK_LIB} ${CUDA_INTERNAL_LINK_LIB} ${OPENBLAS_LINK})
 
-	configure_file(${UNIHELP_DIR_INC}/unihelpers.hpp ${UNIHELP_INSTALL_INC}/unihelpers.hpp COPYONLY)
-	## FIXME: This is a temporary cheat for deployment, must be removed at some point (?). It has to do with TransposeTranslate.
-	configure_file(${BACKEND_UNIHELP_DIR_SRC}/backend_wrappers.hpp ${UNIHELP_INSTALL_INC}/backend_wrappers.hpp COPYONLY)
+elseif(${BACKEND} STREQUAL "HIP")
+	if(${BUILD_BLAS_WRAPPERS_FLAG} EQUAL 1)
+		add_definitions(-DBUILD_BLAS_WRAPPERS_FLAG)
+		
+		add_library(unihelpers SHARED
+		${UNIHELP_DIR_SRC}/general_utils.cpp
+		${UNIHELP_DIR_SRC}/data_management.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_lib_wrappers.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_routine_wrappers.cpp
+		)
+	else()
+		add_library(unihelpers SHARED
+		${UNIHELP_DIR_SRC}/general_utils.cpp
+		${UNIHELP_DIR_SRC}/data_management.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_util_wrappers.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_data_wrappers.cpp
+		${BACKEND_UNIHELP_DIR_SRC}/backend_class_wrappers.cpp
+		)
+	endif()
+
+	target_link_libraries(unihelpers ${HIP_INTERNAL_LINK_LIB} ${OPENBLAS_LINK} ${CUDA_INTERNAL_LINK_LIB} ${HIPBLAS_LINK} ${HIPRAND_LINK})
 
 else()
 	message(FATAL_ERROR "Universal Helpers - BACKEND flag error: BACKEND=" ${BACKEND} )
 endif()
+
+configure_file(${UNIHELP_DIR_INC}/unihelpers.hpp ${UNIHELP_INSTALL_INC}/unihelpers.hpp COPYONLY)
+## FIXME: This is a temporary cheat for deployment, must be removed at some point (?). It has to do with TransposeTranslate.
+configure_file(${BACKEND_UNIHELP_DIR_SRC}/backend_wrappers.hpp ${UNIHELP_INSTALL_INC}/backend_wrappers.hpp COPYONLY)
 
 
 set (UNIHELP_INSTALL_INC ${UNIHELP_INSTALL_INC} PARENT_SCOPE)
@@ -199,7 +267,7 @@ message( "----------------------------------------------------------------------
 
 # Testing
 enable_testing()
-if (${BACKEND} STREQUAL "CuCuBLAS")
+if (${BACKEND} STREQUAL "CuCuBLAS" OR ${BACKEND} STREQUAL "HIP")
 	add_subdirectory(testing)
 elseif(${BACKEND} STREQUAL "Pthreads")
 	add_subdirectory(testing_pthreads)
