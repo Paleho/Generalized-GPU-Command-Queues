@@ -377,12 +377,15 @@ void CommandQueue::sync_barrier()
 	queue_data_p backend_d = (queue_data_p) cqueue_backend_data;
 
 	// get_lock_q(&backend_d->queueLock);
+	bool queueIsBusy = true;
 	pthread_mutex_lock(&(backend_d->condition_lock));
-	while (backend_d->busy){
-		// release_lock_q(&backend_d->queueLock);
-		pthread_cond_wait(&(backend_d->condition_variable), &(backend_d->condition_lock));
-		// get_lock_q(&backend_d->queueLock);
-	}
+	if(backend_d->busy)
+		while (queueIsBusy){
+			// release_lock_q(&backend_d->queueLock);
+			pthread_cond_wait(&(backend_d->condition_variable), &(backend_d->condition_lock));
+			queueIsBusy = task_queue_p->size() > 0;
+			// get_lock_q(&backend_d->queueLock);
+		}
 	// release_lock_q(&backend_d->queueLock);
 	// queue is synchronized
 	pthread_mutex_unlock(&(backend_d->condition_lock));
