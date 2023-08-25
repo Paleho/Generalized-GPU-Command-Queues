@@ -75,17 +75,20 @@ void* taskExecLoop(void * args)
 
 	while(1){
 		get_lock_q(&thread_data->queueLock);
+		pthread_mutex_lock(&(thread_data->condition_lock));
+		thread_data->busy = true;
 		if(thread_data->terminate){
+			pthread_mutex_unlock(&(thread_data->condition_lock));
 			release_lock_q(&thread_data->queueLock);
 			break;
 		} 
 		else if(task_queue_p->size() > 0){
-			thread_data->busy = true;
 			for(int i = 0; i < STREAM_POOL_SZ; i++)
 				massert(cudaSuccess == cudaStreamQuery(thread_data->stream_pool[i]), "Error: Found stream with pending work\n");
 
 			// get next task
 			pthread_task_p curr_task_p = task_queue_p->front();
+			pthread_mutex_unlock(&(thread_data->condition_lock));
 			release_lock_q(&thread_data->queueLock);
 
 			if(curr_task_p){
@@ -125,7 +128,6 @@ void* taskExecLoop(void * args)
 			}
 		}
 		else{
-			pthread_mutex_lock(&(thread_data->condition_lock));
 
 			thread_data->busy = false;
 
@@ -360,35 +362,34 @@ void CommandQueue::sync_barrier()
 
 		// wait each queue
 
-		// get_lock_q(&backend_d->queueLock);
-		pthread_mutex_lock(&(backend_d->condition_lock));
-		while (backend_d->busy){
-			// release_lock_q(&backend_d->queueLock);
-			pthread_cond_wait(&(backend_d->condition_variable), &(backend_d->condition_lock));
-			// get_lock_q(&backend_d->queueLock);
+		bool queueIsBusy = true;
+		while(queueIsBusy){
+			pthread_mutex_lock(&(backend_d->condition_lock));
+			while (backend_d->busy){
+				pthread_cond_wait(&(backend_d->condition_variable), &(backend_d->condition_lock));
+			}
+			pthread_mutex_unlock(&(backend_d->condition_lock));
+			get_lock_q(&backend_d->queueLock);
+			queueIsBusy = task_queue_p->size() > 0;
+			release_lock_q(&backend_d->queueLock);
 		}
-		// release_lock_q(&backend_d->queueLock);
-		// queue is synchronized
-		pthread_mutex_unlock(&(backend_d->condition_lock));
 	}
 #else
 
 	std::queue<pthread_task_p> * task_queue_p = (std::queue<pthread_task_p> *)cqueue_backend_ptr;
 	queue_data_p backend_d = (queue_data_p) cqueue_backend_data;
 
-	// get_lock_q(&backend_d->queueLock);
 	bool queueIsBusy = true;
-	pthread_mutex_lock(&(backend_d->condition_lock));
-	if(backend_d->busy)
-		while (queueIsBusy){
-			// release_lock_q(&backend_d->queueLock);
+	while(queueIsBusy){
+		pthread_mutex_lock(&(backend_d->condition_lock));
+		while (backend_d->busy){
 			pthread_cond_wait(&(backend_d->condition_variable), &(backend_d->condition_lock));
-			queueIsBusy = task_queue_p->size() > 0;
-			// get_lock_q(&backend_d->queueLock);
 		}
-	// release_lock_q(&backend_d->queueLock);
-	// queue is synchronized
-	pthread_mutex_unlock(&(backend_d->condition_lock));
+		pthread_mutex_unlock(&(backend_d->condition_lock));
+		get_lock_q(&backend_d->queueLock);
+		queueIsBusy = task_queue_p->size() > 0;
+		release_lock_q(&backend_d->queueLock);
+	}
 #endif
 
 #ifdef UDDEBUG
