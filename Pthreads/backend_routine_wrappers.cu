@@ -355,6 +355,7 @@ void* cublas_wrap_dgemv(void* wider_backend_data){
   if (ptr_ker_translate->dev_id != cur_dev_id)
     warning("cublas_wrap_dgemv: Changing device %d -> %d\n", cur_dev_id, ptr_ker_translate->dev_id);
 #endif
+  CoCoPeLiaSelectDevice(ptr_ker_translate->dev_id);
 #ifdef DDEBUG
   lprintf(lvl, "cublas_wrap_dgemv: cblas_dgemv(dev_id = %d, TransA = %c\
     M = %d, N = %d,alpha = %lf, A = %p, lda = %d, \n\
